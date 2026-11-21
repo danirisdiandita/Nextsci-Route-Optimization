@@ -109,11 +109,11 @@ export function RouteMap({ className }: { className?: string }) {
         return (
           <g key={`live${d.name}`}>
             <circle className="map-pulse" cx={x} cy={y} r="12" fill={d.color} />
-            <circle cx={x} cy={y} r="6.5" fill={d.color} stroke="#fff" strokeWidth="2" />
+            <circle cx={x} cy={y} r="6.5" fill={d.color} stroke="var(--text)" strokeWidth="2" />
           </g>
         )
       })}
-      <rect x={DEPOT[0] - 8} y={DEPOT[1] - 8} width="16" height="16" rx="3" fill="#f7f8f8" />
+      <rect x={DEPOT[0] - 8} y={DEPOT[1] - 8} width="16" height="16" rx="3" fill="var(--text)" />
     </svg>
   )
 }
@@ -299,7 +299,7 @@ export function OptimizeVisual() {
         {d.stops.map(([x, y], i) => (
           <circle key={i} cx={x} cy={y} r="5" fill="var(--surface-inset)" stroke={d.color} strokeWidth="2" />
         ))}
-        <rect x={DEPOT[0] - 6} y={DEPOT[1] - 6} width="12" height="12" rx="2" fill="#f7f8f8" />
+        <rect x={DEPOT[0] - 6} y={DEPOT[1] - 6} width="12" height="12" rx="2" fill="var(--text)" />
       </svg>
     </div>
   )

@@ -10,20 +10,7 @@ type AuthState =
 type FormState = { kind: 'idle' } | { kind: 'submitting' } | { kind: 'error'; message: string }
 
 function Logo({ size = 28 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
-      <rect width="32" height="32" rx="8" fill="#f7f8f8" />
-      <path
-        d="M9 22.5h7.5a3.25 3.25 0 0 0 0-6.5h-1a3.25 3.25 0 0 1 0-6.5H23"
-        fill="none"
-        stroke="#08090a"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-      />
-      <circle cx="9" cy="22.5" r="2.6" fill="#08090a" />
-      <circle cx="23" cy="9.5" r="2.6" fill="#5e9bff" />
-    </svg>
-  )
+  return <img src="/favicon.svg" width={size} height={size} alt="" />
 }
 
 function SignIn({ onSignedIn }: { onSignedIn: (session: Session) => void }) {

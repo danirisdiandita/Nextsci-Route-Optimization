@@ -17,6 +17,9 @@
   --success: #4cc38a;
   --warning: #f5b544;
   --danger: #ef5a5a;
+  --danger-text: #f6a4a4;
+  --fill-primary: #e8e9ea;
+  --fill-primary-hover: #ffffff;
 
   --route-1: #5e9bff;
   --route-2: #f2994a;
@@ -94,6 +97,79 @@ a {
 ::selection {
   background: var(--accent-soft);
   color: var(--text);
+}
+
+/* Shared components. DESIGNS.md describes each one. Apps may position them but never restyle them. */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: var(--font-small);
+  font-weight: 560;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.btn-sm {
+  height: 32px;
+  padding: 0 12px;
+}
+
+.btn-lg {
+  height: 44px;
+  padding: 0 18px;
+  font-size: 14px;
+}
+
+.btn-primary {
+  background: var(--fill-primary);
+  color: var(--bg);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--fill-primary-hover);
+}
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+  box-shadow: var(--highlight);
+}
+
+.btn-secondary:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
