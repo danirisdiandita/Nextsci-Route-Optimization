@@ -1,0 +1,38 @@
+[importlinter]
+root_packages =
+    apps
+    config
+
+[importlinter:contract:app-layers]
+name = Inside each app, api depends on services and selectors, which depend on models
+type = layers
+containers =
+    apps.*
+layers =
+    (api)
+    (services) | (selectors)
+    (models)
+
+[importlinter:contract:api-is-the-edge]
+name = Only config and other api packages import an app's api package
+type = forbidden
+source_modules =
+    apps.*.models
+    apps.*.services
+    apps.*.selectors
+    apps.*.admin
+forbidden_modules =
+    apps.*.api
+
+[importlinter:contract:domain-order]
+name = Apps depend only on apps below them in the domain order (see .agents/backend.md)
+type = layers
+containers =
+    apps
+layers =
+    (notifications)
+    (tracking)
+    (routing)
+    (orders)
+    (fleet)
+    accounts

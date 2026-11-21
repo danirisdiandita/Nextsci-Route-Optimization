@@ -3,18 +3,31 @@
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 
+echo "== docs"
+"$root/scripts/check-docs.sh"
+
 echo "== backend"
 cd "$root/backend"
 [ -d .venv ] || python3 -m venv .venv
-.venv/bin/pip install -q -r requirements.txt
+.venv/bin/pip install -q -r requirements-dev.txt
 .venv/bin/python manage.py check
 .venv/bin/python manage.py makemigrations --check --dry-run
+.venv/bin/lint-imports --no-cache
+.venv/bin/python manage.py test
 
 echo "== frontend"
 cd "$root/frontend"
 npm ci --no-fund --no-audit
 npm run lint
 npm run build
+
+echo "== dashboard"
+cd "$root/dashboard"
+npm ci --no-fund --no-audit
+npm run lint
+npm run build
+"$root/scripts/check-design.sh"
+"$root/scripts/check-react.sh"
 
 echo "== mobile"
 cd "$root/mobile"

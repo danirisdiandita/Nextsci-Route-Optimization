@@ -1,0 +1,15 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+tasks:
+  install:
+    # npm writes node_modules/.package-lock.json on install, so this reinstalls only when package-lock.json changes.
+    script: '[ node_modules/.package-lock.json -nt package-lock.json ] || npm ci --no-fund --no-audit'
+    inputs:
+      - 'package-lock.json'
+    options:
+      cache: false
+  dev:
+    command: 'npm run dev'
+    deps:
+      - '~:install'
+    preset: 'server'

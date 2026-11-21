@@ -1,0 +1,29 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+tasks:
+  install:
+    script: '[ -d .venv ] || python3 -m venv .venv; .venv/bin/pip install -q -r requirements.txt'
+    inputs:
+      - 'requirements.txt'
+    options:
+      cache: false
+  dev:
+    command: '.venv/bin/python manage.py runserver'
+    deps:
+      - '~:install'
+    preset: 'server'
+  migrate:
+    command: '.venv/bin/python manage.py migrate'
+    deps:
+      - '~:install'
+    options:
+      cache: false
+      runInCI: false
+  createsuperuser:
+    command: '.venv/bin/python manage.py createsuperuser'
+    deps:
+      - '~:migrate'
+    options:
+      cache: false
+      interactive: true
+      runInCI: false

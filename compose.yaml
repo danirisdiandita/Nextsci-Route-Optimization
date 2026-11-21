@@ -24,8 +24,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nextsci}
       POSTGRES_HOST: db
       POSTGRES_PORT: "5432"
-      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-django-insecure-dev-only}
-      DJANGO_DEBUG: ${DJANGO_DEBUG:-1}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-django-insecure-dev-only-not-for-production-use}
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,backend}
     ports:
       - "8000:8000"
@@ -35,12 +34,14 @@ services:
       db:
         condition: service_healthy
 
-  frontend:
-    build: ./frontend
+  dashboard:
+    build: ./dashboard
+    environment:
+      API_PROXY_TARGET: http://backend:8000
     ports:
-      - "5173:5173"
+      - "5174:5174"
     volumes:
-      - ./frontend:/app
+      - ./dashboard:/app
       - /app/node_modules
     depends_on:
       - backend

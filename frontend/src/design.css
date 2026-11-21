@@ -1,0 +1,202 @@
+/* Shared by frontend/ and dashboard/. Edit both copies together; scripts/check.sh fails if they differ. DESIGNS.md documents every value. */
+:root {
+  /* Each color is light-dark(light, dark). color-scheme picks the side: the OS setting by default,
+     or the visitor's choice through data-theme on <html>. */
+  color-scheme: light dark;
+
+  --bg: light-dark(#fcfcfd, #08090a);
+  --bg-raised: light-dark(#f5f6f7, #0e0f10);
+  --surface: light-dark(#ffffff, #131416);
+  --surface-hover: light-dark(#f3f4f5, #1a1b1e);
+  --surface-inset: light-dark(#f1f2f4, #0b0c0d);
+  --border: light-dark(rgb(15 16 18 / 0.09), rgb(255 255 255 / 0.08));
+  --border-strong: light-dark(rgb(15 16 18 / 0.17), rgb(255 255 255 / 0.14));
+  --text: light-dark(#0f1012, #f7f8f8);
+  --text-2: light-dark(#3c4047, #c9ced6);
+  --text-3: light-dark(#696e77, #8a8f98);
+  --text-4: light-dark(#9a9ea6, #5d6168);
+  --shadow: light-dark(rgb(15 16 18 / 0.18), #000000);
+
+  --accent: light-dark(#2f6fe0, #5e9bff);
+  --accent-soft: light-dark(rgb(47 111 224 / 0.12), rgb(94 155 255 / 0.14));
+  --success: light-dark(#1d9460, #4cc38a);
+  --warning: light-dark(#b7791f, #f5b544);
+  --danger: light-dark(#d93636, #ef5a5a);
+  --danger-text: light-dark(#b42323, #f6a4a4);
+  --fill-primary: light-dark(#0f1012, #e8e9ea);
+  --fill-primary-hover: light-dark(#2b2d31, #ffffff);
+
+  --route-1: light-dark(#2f6fe0, #5e9bff);
+  --route-2: light-dark(#e07b25, #f2994a);
+  --route-3: light-dark(#1d9460, #4cc38a);
+  --route-4: light-dark(#9b5de5, #c084fc);
+  --route-5: light-dark(#c99a0e, #f5c451);
+  --route-6: light-dark(#1a9fb4, #38c6d9);
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-monospace: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --font-display: clamp(44px, 7vw, 80px);
+  --font-h2: clamp(32px, 4.4vw, 52px);
+  --font-h3: 20px;
+  --font-lead: clamp(17px, 1.6vw, 20px);
+  --font-body: 15px;
+  --font-small: 13px;
+
+  --content: 1120px;
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --highlight: inset 0 1px 0 light-dark(rgb(255 255 255 / 0.8), rgb(255 255 255 / 0.05));
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+/* Base and component rules sit in cascade layers, so app styles and Tailwind utilities override them. Tokens above stay unlayered. */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 72px;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text-2);
+    font-family: var(--font-sans);
+    font-size: var(--font-body);
+    line-height: 1.6;
+    font-feature-settings: 'cv11', 'ss01', 'ss03';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  p {
+    margin: 0;
+  }
+
+  h1,
+  h2,
+  h3 {
+    color: var(--text);
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--text);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}
+
+@layer components {
+  /* Shared components. DESIGNS.md describes each one. Apps may position them but never restyle them. */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 14px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    font: inherit;
+    font-size: var(--font-small);
+    font-weight: 560;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+
+  .btn-sm {
+    height: 32px;
+    padding: 0 12px;
+  }
+
+  .btn-lg {
+    height: 44px;
+    padding: 0 18px;
+    font-size: 14px;
+  }
+
+  .btn-primary {
+    background: var(--fill-primary);
+    color: var(--bg);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: var(--fill-primary-hover);
+  }
+
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border);
+    box-shadow: var(--highlight);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--border-strong);
+    background: var(--surface-hover);
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex: none;
+  }
+}
