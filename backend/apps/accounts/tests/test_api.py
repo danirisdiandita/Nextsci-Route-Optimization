@@ -1,7 +1,7 @@
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from .models import User
+from ..models import User
 
 TOKEN_URL = "/api/v1/auth/token/"
 REFRESH_URL = "/api/v1/auth/token/refresh/"
