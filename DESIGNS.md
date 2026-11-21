@@ -1,6 +1,6 @@
 # Design system
 
-Nextsci uses one visual language for the website, the dispatcher web app, and the driver app. It is dark, quiet, and precise. Content carries the color. The interface around it stays neutral.
+Nextsci uses one visual language for the website, the dispatcher web app, and the driver app. It is quiet and precise, and it comes in a dark theme and a light theme. Content carries the color. The interface around it stays neutral.
 
 The dashboard renders these tokens through shadcn/ui components on Tailwind CSS. `dashboard/src/tailwind.css` maps shadcn's names to the tokens. The website uses plain CSS. [`.agents/ui.md`](.agents/ui.md) has the rules for both.
 
@@ -8,7 +8,7 @@ The tokens below exist as CSS custom properties in `design.css`. The dashboard a
 
 ## Principles
 
-- **Dark first.** The base is near-black, not gray. Surfaces lift by a few steps of lightness, never by heavy shadows.
+- **Dark first, light equal.** The dark base is near-black, not gray, and the light base is near-white. Surfaces lift by a few steps of lightness, never by heavy shadows. Every screen must work in both themes.
 - **Color means data.** Neutral grays build the interface. Saturated color marks routes, drivers, and status. One accent color marks the primary action.
 - **Thin lines, soft light.** Separate regions with 1px borders at low opacity. Use a faint radial glow for emphasis instead of solid fills.
 - **Tight, confident type.** Large headings use negative letter spacing and short line height. Body text stays small and calm.
@@ -17,47 +17,57 @@ The tokens below exist as CSS custom properties in `design.css`. The dashboard a
 
 ## Color
 
+### Themes
+
+Each app offers three choices: **System**, **Light**, and **Dark**. System is the default and follows the operating system, including when it changes while the page is open. The choice is saved per browser.
+
+- **Tokens hold both values.** Every color token in `design.css` is `light-dark(<light>, <dark>)`. CSS `color-scheme` picks the side: `light dark` by default, or one side when `<html>` has `data-theme="light"` or `data-theme="dark"`.
+- **The store.** `src/hooks/useTheme.ts`, identical in both apps, keeps the choice in a zustand store persisted to `localStorage` under `nextsci.theme`, and sets or removes `data-theme`. An inline script in each `index.html` applies a saved choice before the first paint.
+- **The switch.** A three-button group with Monitor, Sun, and Moon icons, labeled "System theme", "Light theme", and "Dark theme". The dashboard builds it from the shadcn toggle group (`src/components/ThemeToggle.tsx`) and the website from plain buttons (`src/landing/ThemeToggle.tsx`). It sits in the top bar, and at the top right of the sign-in screen.
+- **Tints mix a token.** For a translucent color, mix a token with transparent, such as `color-mix(in srgb, var(--text) 10%, transparent)` for a hairline that is white on dark and black on light. Never write `rgb()` with fixed values outside `design.css`.
+
 ### Neutrals
 
-| Token | Value | Use |
-| --- | --- | --- |
-| `--bg` | `#08090a` | Page background |
-| `--bg-raised` | `#0e0f10` | Alternate section background |
-| `--surface` | `#131416` | Cards, panels, window frames |
-| `--surface-hover` | `#1a1b1e` | Hover state of a surface |
-| `--surface-inset` | `#0b0c0d` | Inputs, code blocks, map background |
-| `--border` | `rgb(255 255 255 / 0.08)` | Default 1px border |
-| `--border-strong` | `rgb(255 255 255 / 0.14)` | Hovered or focused border |
-| `--text` | `#f7f8f8` | Headings and primary text |
-| `--text-2` | `#c9ced6` | Body text |
-| `--text-3` | `#8a8f98` | Secondary text and captions |
-| `--text-4` | `#5d6168` | Disabled text and fine print |
+| Token | Dark | Light | Use |
+| --- | --- | --- | --- |
+| `--bg` | `#08090a` | `#fcfcfd` | Page background |
+| `--bg-raised` | `#0e0f10` | `#f5f6f7` | Alternate section background |
+| `--surface` | `#131416` | `#ffffff` | Cards, panels, window frames |
+| `--surface-hover` | `#1a1b1e` | `#f3f4f5` | Hover state of a surface |
+| `--surface-inset` | `#0b0c0d` | `#f1f2f4` | Inputs, code blocks, map background |
+| `--border` | `rgb(255 255 255 / 0.08)` | `rgb(15 16 18 / 0.09)` | Default 1px border |
+| `--border-strong` | `rgb(255 255 255 / 0.14)` | `rgb(15 16 18 / 0.17)` | Hovered or focused border |
+| `--text` | `#f7f8f8` | `#0f1012` | Headings and primary text |
+| `--text-2` | `#c9ced6` | `#3c4047` | Body text |
+| `--text-3` | `#8a8f98` | `#696e77` | Secondary text and captions |
+| `--text-4` | `#5d6168` | `#9a9ea6` | Disabled text and fine print |
+| `--shadow` | `#000000` | `rgb(15 16 18 / 0.18)` | Base for drop shadows; mix it, such as `color-mix(in srgb, var(--shadow) 70%, transparent)` |
 
 ### Accent and status
 
-| Token | Value | Use |
-| --- | --- | --- |
-| `--accent` | `#5e9bff` | Links, focus rings, primary highlights |
-| `--accent-soft` | `rgb(94 155 255 / 0.14)` | Accent backgrounds and glows |
-| `--success` | `#4cc38a` | Delivered, on time |
-| `--warning` | `#f5b544` | At risk, late soon |
-| `--danger` | `#ef5a5a` | Failed, late |
-| `--danger-text` | `#f6a4a4` | Error message text on a `--danger` tint |
-| `--fill-primary` | `#e8e9ea` | Primary button background |
-| `--fill-primary-hover` | `#ffffff` | Primary button background on hover |
+| Token | Dark | Light | Use |
+| --- | --- | --- | --- |
+| `--accent` | `#5e9bff` | `#2f6fe0` | Links, focus rings, primary highlights |
+| `--accent-soft` | `rgb(94 155 255 / 0.14)` | `rgb(47 111 224 / 0.12)` | Accent backgrounds and glows |
+| `--success` | `#4cc38a` | `#1d9460` | Delivered, on time |
+| `--warning` | `#f5b544` | `#b7791f` | At risk, late soon |
+| `--danger` | `#ef5a5a` | `#d93636` | Failed, late |
+| `--danger-text` | `#f6a4a4` | `#b42323` | Error message text on a `--danger` tint |
+| `--fill-primary` | `#e8e9ea` | `#0f1012` | Primary button background |
+| `--fill-primary-hover` | `#ffffff` | `#2b2d31` | Primary button background on hover |
 
 ### Route colors
 
 Each driver gets one route color. Assign colors in this order, and reuse them in the same order after the sixth driver.
 
-| Token | Value |
-| --- | --- |
-| `--route-1` | `#5e9bff` |
-| `--route-2` | `#f2994a` |
-| `--route-3` | `#4cc38a` |
-| `--route-4` | `#c084fc` |
-| `--route-5` | `#f5c451` |
-| `--route-6` | `#38c6d9` |
+| Token | Dark | Light |
+| --- | --- | --- |
+| `--route-1` | `#5e9bff` | `#2f6fe0` |
+| `--route-2` | `#f2994a` | `#e07b25` |
+| `--route-3` | `#4cc38a` | `#1d9460` |
+| `--route-4` | `#c084fc` | `#9b5de5` |
+| `--route-5` | `#f5c451` | `#c99a0e` |
+| `--route-6` | `#38c6d9` | `#1a9fb4` |
 
 ## Typography
 
@@ -81,7 +91,7 @@ Headings use `--text`. Give the hero heading a vertical gradient from `--text` t
 - **Content width.** Keep content at most 1120px wide (`--content`). Keep text blocks at most 640px wide.
 - **Section rhythm.** Separate sections by 128px of vertical padding on desktop and 80px on mobile.
 - **Radius.** `--radius-sm` 6px for buttons and chips, `--radius` 10px for cards, and `--radius-lg` 16px for product frames.
-- **Elevation.** A raised surface has a 1px `--border` plus an inner top highlight, `inset 0 1px 0 rgb(255 255 255 / 0.05)`. Product frames add one large, soft shadow.
+- **Elevation.** A raised surface has a 1px `--border` plus an inner top highlight, `--highlight`. Product frames add one large, soft shadow.
 
 ## Components
 
@@ -97,7 +107,7 @@ The logo is `public/favicon.svg`, the same file in both apps. Render it with an 
 | Secondary | `--surface` | `--text` | `--border` | Other actions |
 | Ghost | transparent | `--text-3` | none | Navigation and tertiary actions |
 
-Buttons are 36px tall, or 44px tall in the hero. They use `--font-small` at weight 560 and `--radius-sm`. On hover, primary buttons turn white and secondary buttons switch to `--border-strong`.
+Buttons are 36px tall, or 44px tall in the hero. They use `--font-small` at weight 560 and `--radius-sm`. On hover, primary buttons move to `--fill-primary-hover` and secondary buttons switch to `--border-strong`.
 
 ### Pill
 
@@ -117,7 +127,7 @@ A product frame is a static picture of the interface, drawn with HTML and SVG, n
 
 ### Map
 
-Draw maps with SVG on `--surface-inset`. Draw streets as 1px lines in `rgb(255 255 255 / 0.06)`. Draw routes as 2.5px lines in route colors with round joins. Draw stops as 7px circles with a 2px `--surface-inset` outline. Draw the depot as a white square.
+Draw maps with SVG on `--surface-inset`. Draw streets as 1px lines in `--text` at about 6%, through `color-mix()`. Draw routes as 2.5px lines in route colors with round joins. Draw stops as 7px circles with a 2px `--surface-inset` outline. Draw the depot as a `--text` square.
 
 ### Icons
 
@@ -131,7 +141,7 @@ The dashboard opens on the sign-in screen at [`dashboard/src/App.tsx`](dashboard
 
 The landing page lives in [`frontend/src/landing/`](frontend/src/landing/). It has these sections, in order:
 
-1. **Navigation.** The logo, section links, and a GitHub button. The bar sticks to the top with a blurred background.
+1. **Navigation.** The logo, section links, the theme switch, and a GitHub button. The bar sticks to the top with a blurred background.
 2. **Hero.** A release pill, the display heading, a lead, two buttons, and the dispatcher product frame.
 3. **Value strip.** Three short facts about the project.
 4. **Features.** A grid of eight cards that covers the full dispatch workflow.

@@ -30,6 +30,7 @@ export const queryKeys = {
 
 - Use TanStack Query for any data that comes from the server, including the signed-in session. Do not copy server data into `useState`, and do not fetch in `useEffect`.
 - Use `useState` for state that only the screen owns, such as an open menu or a form draft.
+- Use a zustand store for client state that outlives a screen or the page, such as the theme choice. Keep the store private to its hook file in `src/hooks/` and export only the `useX` hook, as `useTheme.ts` does. Use the `persist` middleware to save it, and validate what it reads back in `merge`.
 - After a mutation, update the cache with `setQueryData` or `invalidateQueries` in the hook's `onSuccess`. Do not make components refetch by hand.
 
 ## Example

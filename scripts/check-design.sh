@@ -7,15 +7,16 @@ fail=0
 err() { echo "design: $*" >&2; fail=1; }
 
 # 1. Shared files are byte-identical in both apps.
-for f in src/design.css public/favicon.svg; do
+for f in src/design.css src/hooks/useTheme.ts public/favicon.svg; do
   cmp -s "frontend/$f" "dashboard/$f" ||
     err "frontend/$f and dashboard/$f differ. Edit one, then copy it: cp frontend/$f dashboard/$f"
 done
 
-# 2. Colors come from tokens. Only design.css defines raw hex values.
-hex=$(grep -rnE '#[0-9a-fA-F]{3}([0-9a-fA-F]{3}([0-9a-fA-F]{2})?)?\b' frontend/src dashboard/src \
+# 2. Colors come from tokens. Only design.css defines raw colors, because each one there has a light and a dark value.
+#    For a tint, mix a token: color-mix(in srgb, var(--text) 10%, transparent).
+hex=$(grep -rnE '#[0-9a-fA-F]{3}([0-9a-fA-F]{3}([0-9a-fA-F]{2})?)?\b|\b(rgba?|hsla?)\(' frontend/src dashboard/src \
   --include='*.css' --include='*.ts' --include='*.tsx' | grep -v '/design\.css:')
-[[ -z "$hex" ]] || err "raw hex colors outside design.css. Use a token from DESIGNS.md, or add one to design.css:
+[[ -z "$hex" ]] || err "raw colors outside design.css. Use a token from DESIGNS.md, mix one with color-mix(), or add one to design.css:
 $hex"
 
 # 3. Apps never restyle a shared component. They may position it through a parent selector.

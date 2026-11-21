@@ -3,6 +3,7 @@
 //   node scripts/screenshot.mjs <url> <out.png> [width=1280]
 // Uses device emulation, so widths under 500px are real. Chrome's --window-size cannot go below 500px.
 // Emulates prefers-reduced-motion, so the capture shows every section in its final state.
+// Set COLOR_SCHEME=light or COLOR_SCHEME=dark to emulate the OS theme. The apps follow it unless a visitor picked one.
 // Set CHROME to the browser binary if it is not in the default location.
 import { spawn } from 'node:child_process'
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
@@ -49,7 +50,9 @@ try {
 
   await send('Page.enable')
   // Reduced motion turns off scroll-driven reveals, so sections below the fold render in a full-page capture.
-  await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] })
+  const features = [{ name: 'prefers-reduced-motion', value: 'reduce' }]
+  if (process.env.COLOR_SCHEME) features.push({ name: 'prefers-color-scheme', value: process.env.COLOR_SCHEME })
+  await send('Emulation.setEmulatedMedia', { features })
   await send('Emulation.setDeviceMetricsOverride', { width, height: mobile ? 844 : 800, deviceScaleFactor: mobile ? 2 : 1, mobile })
   await send('Page.navigate', { url })
   await sleep(2500)

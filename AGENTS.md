@@ -14,13 +14,14 @@ Nextsci Route Optimisation is an open-source route planning and optimisation pla
   - `.importlinter` — import contracts that `lint-imports` checks; `requirements-dev.txt` adds dev tools on top of `requirements.txt`.
   - `apps/accounts/` — email-login custom `User` (`AUTH_USER_MODEL = "accounts.User"`) and JWT auth.
   - API is versioned under `/api/v1/`. Auth: `POST auth/token/` (email, password → access, refresh), `POST auth/token/refresh/`, `GET auth/me/`. DRF requires a JWT bearer token by default.
-- `dashboard/` — Vite + React + TypeScript dispatcher app that self-hosters deploy. Opens on sign-in, has no landing page. Calls the API on its own origin (`/api`); in development Vite proxies `/api` to Django (`API_PROXY_TARGET`, default `http://localhost:8000`). Server calls in `src/api/`, custom hooks and TanStack Query in `src/hooks/`, shadcn/ui components on Tailwind CSS v4 in `src/components/ui/`. npm.
+- `dashboard/` — Vite + React + TypeScript dispatcher app that self-hosters deploy. Opens on sign-in, has no landing page. Calls the API on its own origin (`/api`); in development Vite proxies `/api` to Django (`API_PROXY_TARGET`, default `http://localhost:8000`). Server calls in `src/api/`, custom hooks and TanStack Query in `src/hooks/`, the persisted theme choice in a zustand store in `src/hooks/useTheme.ts`, shadcn/ui components on Tailwind CSS v4 in `src/components/ui/`. npm.
 - `frontend/` — Vite + React + TypeScript public project website with the landing page in `src/landing/`. Not part of a self-hosted deployment. npm.
-- `frontend/src/design.css` and `dashboard/src/design.css` — identical copies of the design tokens, base styles, and shared components. Edit one and copy it to the other; `scripts/check-design.sh` fails if they differ.
+- `frontend/src/design.css` and `dashboard/src/design.css` — identical copies of the design tokens (each color a `light-dark()` pair), base styles, and shared components. Edit one and copy it to the other; `scripts/check-design.sh` fails if they differ.
 - `scripts/check-design.sh` — enforces the UI rules in `.agents/ui.md`; `scripts/check.sh` runs it
 - `scripts/check-react.sh` — enforces the React code layout in `.agents/react.md`; `scripts/check.sh` runs it
 - `dashboard/AGENTS.md`, `frontend/AGENTS.md` — per-app pointers to the rules below, loaded by agents working inside each app
 - `scripts/screenshot.mjs` — full-page screenshot of a running app at an exact width, including widths under 500px
+- `scripts/e2e/theme.mjs` — end-to-end test of the System, Light, and Dark theme switch against a running app (dashboard or website)
 - `scripts/e2e-dashboard.sh` — end-to-end dashboard sign-in test in Chrome against a throwaway database; drives `scripts/e2e/signin.mjs`
 - `scripts/check-docs.sh` — fails when a doc in `.agents/` is not indexed or a relative markdown link breaks; `scripts/check.sh` runs it
 - `mobile/` — Expo (SDK 58) + Expo Router React Native app for drivers. npm. Read `mobile/AGENTS.md` before touching it.
