@@ -2,7 +2,7 @@
 
 Nextsci uses one visual language for the website, the dispatcher web app, and the driver app. It is dark, quiet, and precise. Content carries the color. The interface around it stays neutral.
 
-The tokens below exist as CSS custom properties in [`frontend/src/index.css`](frontend/src/index.css). Use the variables in code. Do not paste raw hex values into components.
+The tokens below exist as CSS custom properties in `design.css`. The dashboard and the website each have an identical copy, [`dashboard/src/design.css`](dashboard/src/design.css) and [`frontend/src/design.css`](frontend/src/design.css). Change both copies in the same commit. `scripts/check.sh` fails when they differ. Use the variables in code. Do not paste raw hex values into components.
 
 ## Principles
 
@@ -113,6 +113,10 @@ Draw maps with SVG on `--surface-inset`. Draw streets as 1px lines in `rgb(255 2
 ### Icons
 
 Draw icons as 16px or 20px inline SVG, with a 1.5px stroke, round caps, `currentColor`, and no fill. Put a feature icon in a 32px square with `--surface-hover` and `--radius-sm`.
+
+## Sign-in screen
+
+The dashboard opens on the sign-in screen at [`dashboard/src/App.tsx`](dashboard/src/App.tsx). It is a centered 360px column on `--bg` with a faint accent glow. The column holds the logo, a 24px heading, one line of `--text-3`, two inputs, and one full-width primary button. Inputs are 40px tall on `--surface-inset`. Their focus state is an `--accent` border with an `--accent-soft` ring. Errors appear above the button in a `--danger` tinted box with `role="alert"`. There is no sign-up link, because an administrator creates accounts.
 
 ## Landing page structure
 

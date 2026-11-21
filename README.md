@@ -8,8 +8,8 @@ Dispatchers plan the day on the web. The server builds efficient routes. Drivers
 
 [![Django](https://img.shields.io/badge/Django-6.1-092E20?logo=django&logoColor=white)](backend/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)](compose.yaml)
-[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](frontend/)
-[![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](frontend/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](dashboard/)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](dashboard/)
 [![Expo](https://img.shields.io/badge/Expo-SDK_58-000020?logo=expo&logoColor=white)](mobile/)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](#contribute)
 
@@ -20,7 +20,7 @@ Dispatchers plan the day on the web. The server builds efficient routes. Drivers
 ---
 
 > [!NOTE]
-> The project is at an early stage. The three apps run and talk to PostgreSQL, but no routing features exist yet. You can still shape the core design, so now is a good time to join.
+> The project is at an early stage. The apps run and talk to PostgreSQL, and the dashboard has a sign-in screen, but no routing features exist yet. You can still shape the core design, so now is a good time to join.
 
 ## Why this project exists
 
@@ -35,11 +35,11 @@ Nextsci Route Optimisation gives you the same workflow as open source software t
 
 ## Architecture
 
-The project is a monorepo with three independent apps. Each app has its own dependencies and lockfile.
+The project is a monorepo of independent apps. Each app has its own dependencies and lockfile. A self-hosted deployment runs the API server, the dashboard, and PostgreSQL. The driver app runs on phones. The project website is separate and is not part of a deployment.
 
 ```mermaid
 flowchart LR
-	D["Dispatcher web app<br/>frontend/"] -->|HTTP API| B["API server<br/>backend/"]
+	D["Dashboard<br/>dashboard/"] -->|HTTP API| B["API server<br/>backend/"]
 	M["Driver mobile app<br/>mobile/"] -->|HTTP API| B
 	B --> P[("PostgreSQL")]
 ```
@@ -47,7 +47,7 @@ flowchart LR
 | App | Path | Stack | Dev URL |
 | --- | --- | --- | --- |
 | API server | [`backend/`](backend/) | Django 6.1, Python 3.12, psycopg 3 | http://localhost:8000 |
-| Dispatcher web app | [`frontend/`](frontend/) | React 19, TypeScript, Vite 8 | http://localhost:5173 |
+| Dashboard for dispatchers | [`dashboard/`](dashboard/) | React 19, TypeScript, Vite 8 | http://localhost:5174 |
 | Driver mobile app | [`mobile/`](mobile/) | Expo SDK 58, React Native, Expo Router | Metro on port 8081 |
 | Database | [`compose.yaml`](compose.yaml) | PostgreSQL 17 | `localhost:5432` |
 
@@ -74,7 +74,13 @@ You need [Docker](https://docs.docker.com/get-docker/) with Compose. The stack s
 	docker compose up --build
 	```
 
-4. Open http://localhost:8000/admin/ for the API and http://localhost:5173 for the web app.
+4. Create your first account. The dashboard has no sign-up page, so accounts come from the server.
+
+	```bash
+	docker compose exec backend python manage.py createsuperuser
+	```
+
+5. Open http://localhost:5174 and sign in. The Django admin is at http://localhost:8000/admin/.
 
 > [!TIP]
 > To open the mobile app in Expo Go on your phone, set `HOST_LAN_IP` in `.env` to your computer's LAN address, such as `192.168.1.20`. Then scan the QR code in the `mobile` service logs.
@@ -111,7 +117,22 @@ Django reads its settings from environment variables. For local runs, it loads t
 </details>
 
 <details>
-<summary><strong>Dispatcher web app</strong> (<code>frontend/</code>)</summary>
+<summary><strong>Dashboard</strong> (<code>dashboard/</code>)</summary>
+
+```bash
+cd dashboard
+npm install
+npm run dev
+```
+
+The dashboard runs on http://localhost:5174. It sends `/api` requests to the API server at http://localhost:8000. Set `API_PROXY_TARGET` to use another address.
+
+</details>
+
+<details>
+<summary><strong>Project website</strong> (<code>frontend/</code>)</summary>
+
+The public website with the landing page. Self-hosted deployments do not need it.
 
 ```bash
 cd frontend
@@ -148,7 +169,7 @@ We welcome code, documentation, bug reports, and design feedback. Look for issue
 	```
 
 2. Make your change in small, focused commits.
-3. Run the full check. It installs, typechecks, and builds all three apps, and lints the web app.
+3. Run the full check. It installs, typechecks, and builds every app, and lints the dashboard and the website.
 
 	```bash
 	./scripts/check.sh
@@ -179,7 +200,8 @@ The repository includes instructions for AI coding agents. [`AGENTS.md`](AGENTS.
 ```text
 .
 ├── backend/          Django API server (config/ is the project package)
-├── frontend/         Vite + React dispatcher web app
+├── dashboard/        Vite + React dashboard that self-hosters deploy
+├── frontend/         Project website with the landing page
 ├── mobile/           Expo driver app (routes live in src/app/)
 ├── scripts/
 │   └── check.sh      Typecheck and build every app

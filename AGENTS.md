@@ -4,18 +4,20 @@ Guidance for AI coding agents (Claude Code, Codex, Cursor, etc.) working in this
 
 ## Project
 
-Nextsci Route Optimisation is an open-source route planning and optimisation platform, similar in scope to OptimoRoute. Dispatchers plan routes on the web, the backend solves them, and drivers run them on mobile. It is a monorepo with three independent apps. Each app has its own dependencies and lockfile, and there is no root package manager.
+Nextsci Route Optimisation is an open-source route planning and optimisation platform, similar in scope to OptimoRoute. Dispatchers plan routes on the web, the backend solves them, and drivers run them on mobile. It is a monorepo with four independent apps. Each app has its own dependencies and lockfile, and there is no root package manager.
 
 ## Repository layout
 
 - `backend/` — Django 6 API on PostgreSQL (`config/` is the project package). Python venv in `backend/.venv`, deps pinned in `requirements.txt`. Settings come from environment variables, loaded from the repo-root `.env` for local runs.
-- `frontend/` — Vite + React + TypeScript web app for dispatchers, plus the public landing page in `src/landing/`. npm.
+- `dashboard/` — Vite + React + TypeScript dispatcher app that self-hosters deploy. Opens on sign-in, has no landing page. Calls the API on its own origin (`/api`); in development Vite proxies `/api` to Django (`API_PROXY_TARGET`, default `http://localhost:8000`). npm.
+- `frontend/` — Vite + React + TypeScript public project website with the landing page in `src/landing/`. Not part of a self-hosted deployment. npm.
+- `frontend/src/design.css` and `dashboard/src/design.css` — identical copies of the design tokens and base styles. Edit both; `scripts/check.sh` fails if they differ.
 - `mobile/` — Expo (SDK 58) + Expo Router React Native app for drivers. npm. Read `mobile/AGENTS.md` before touching it.
-- `compose.yaml` — runs Postgres, backend, frontend, and the Expo dev server together
+- `compose.yaml` — runs Postgres, backend, dashboard, and the Expo dev server together
 - `.env.example` — every config variable; copy to `.env` (gitignored)
-- `.moon/workspace.yml`, `backend/moon.yml`, `frontend/moon.yml` — moon task runner config
+- `.moon/workspace.yml`, `backend/moon.yml`, `frontend/moon.yml`, `dashboard/moon.yml` — moon task runner config
 - `.prototools` — pins node for proto, which moon puts first on task PATH
-- `scripts/check.sh` — installs, typechecks, and builds all three apps; run before declaring work done
+- `scripts/check.sh` — installs, typechecks, and builds all four apps; run before declaring work done
 - `README.md` — project overview
 - `AGENTS.md` — this file; the single source of truth for agent instructions
 - `CLAUDE.md` — imports this file for Claude Code
@@ -25,15 +27,15 @@ Nextsci Route Optimisation is an open-source route planning and optimisation pla
 
 Detailed guidance lives in `.agents/`. Read the relevant file before working in that area:
 
-- [DESIGNS.md](DESIGNS.md) — design system: colors, type, components, and landing page structure. Read it before any UI work in `frontend/` or `mobile/`.
+- [DESIGNS.md](DESIGNS.md) — design system: colors, type, components, and landing page structure. Read it before any UI work in `dashboard/`, `frontend/`, or `mobile/`.
 
 ## Commands
 
 Verify everything: `./scripts/check.sh`
 
-Run backend and frontend together: `moon run :dev` (installs backend deps into `backend/.venv` first; `frontend/node_modules` must be set up)
+Run backend, dashboard, and website together: `moon run :dev` (installs backend deps into `backend/.venv` first; `dashboard/node_modules` and `frontend/node_modules` must be set up)
 
-Whole stack in Docker: `cp .env.example .env && docker compose up --build`. Ports: backend 8000, frontend 5173, Metro 8081, Postgres `POSTGRES_HOST_PORT` (default 5432). Set `HOST_LAN_IP` in `.env` so Expo Go on a phone can reach Metro.
+Whole stack in Docker: `cp .env.example .env && docker compose up --build`. Ports: backend 8000, dashboard 5174, Metro 8081, Postgres `POSTGRES_HOST_PORT` (default 5432). Set `HOST_LAN_IP` in `.env` so Expo Go on a phone can reach Metro.
 
 Backend (`cd backend`):
 - Setup: `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`, then fill the `POSTGRES_*` values in the repo-root `.env` for a running Postgres
@@ -42,7 +44,13 @@ Backend (`cd backend`):
 - Check: `.venv/bin/python manage.py check`
 - Add a dependency: `.venv/bin/pip install <pkg> && .venv/bin/pip freeze > requirements.txt`
 
-Frontend (`cd frontend`):
+Dashboard (`cd dashboard`):
+- Setup: `npm install`
+- Run: `npm run dev` (http://localhost:5174; needs the backend on :8000)
+- Lint: `npm run lint` (oxlint)
+- Build + typecheck: `npm run build`
+
+Frontend website (`cd frontend`):
 - Setup: `npm install`
 - Run: `npm run dev`
 - Lint: `npm run lint` (oxlint)
