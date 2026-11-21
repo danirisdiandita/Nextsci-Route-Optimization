@@ -3,6 +3,21 @@
 @import "shadcn/tailwind.css";
 
 /*
+ * dark: follows the theme the page shows: an explicit data-theme="dark" on <html>,
+ * or no explicit light choice while the OS is dark. src/hooks/useTheme.ts sets data-theme.
+ */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme]), :root:not([data-theme]) *) {
+      @slot;
+    }
+  }
+}
+
+/*
  * Maps the names that shadcn components use onto the tokens in design.css.
  * Define no colors here. Change a token in design.css, then every component follows.
  * Never add a :root block: shadcn's default --accent, --border, and --radius would override the design tokens.

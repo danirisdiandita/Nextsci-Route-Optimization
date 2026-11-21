@@ -1,5 +1,6 @@
 import './landing.css'
 import { Icon, Logo } from './Icons'
+import { ThemeToggle } from './ThemeToggle'
 import {
   DispatchVisual,
   DispatcherFrame,
@@ -41,9 +42,12 @@ function Nav() {
             </a>
           ))}
         </nav>
-        <a className="btn btn-secondary btn-sm" href={REPO_URL}>
-          <Icon name="github" /> GitHub
-        </a>
+        <div className="nav-actions">
+          <ThemeToggle />
+          <a className="btn btn-secondary btn-sm" href={REPO_URL}>
+            <Icon name="github" /> GitHub
+          </a>
+        </div>
       </div>
     </header>
   )

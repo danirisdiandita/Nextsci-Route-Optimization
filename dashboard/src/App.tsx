@@ -3,6 +3,7 @@ import type { User } from '@/api/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import { useSession } from '@/hooks/useSession'
 import { useSignIn } from '@/hooks/useSignIn'
 import { useSignOut } from '@/hooks/useSignOut'
@@ -24,6 +25,7 @@ function SignIn() {
 
   return (
     <main className="relative grid min-h-screen place-items-center overflow-hidden px-4 py-6">
+      <ThemeToggle className="absolute top-4 right-4" />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 -top-[40%] h-[900px] bg-[radial-gradient(ellipse_40%_35%_at_50%_40%,var(--accent-soft),transparent_70%)]"
@@ -68,6 +70,7 @@ function Home({ user }: { user: User }) {
           Nextsci
         </div>
         <span className="text-sm text-muted-foreground">{user.email}</span>
+        <ThemeToggle />
         <Button variant="secondary" onClick={signOut}>
           Sign out
         </Button>
