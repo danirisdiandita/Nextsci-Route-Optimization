@@ -9,6 +9,7 @@ cd "$root/backend"
 .venv/bin/pip install -q -r requirements.txt
 .venv/bin/python manage.py check
 .venv/bin/python manage.py makemigrations --check --dry-run
+.venv/bin/python manage.py test
 
 echo "== frontend"
 cd "$root/frontend"
