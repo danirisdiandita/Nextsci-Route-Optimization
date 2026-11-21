@@ -35,12 +35,14 @@ services:
       db:
         condition: service_healthy
 
-  frontend:
-    build: ./frontend
+  dashboard:
+    build: ./dashboard
+    environment:
+      API_PROXY_TARGET: http://backend:8000
     ports:
-      - "5173:5173"
+      - "5174:5174"
     volumes:
-      - ./frontend:/app
+      - ./dashboard:/app
       - /app/node_modules
     depends_on:
       - backend

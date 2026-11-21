@@ -3,3 +3,4 @@ $schema: 'https://moonrepo.dev/schemas/workspace.json'
 projects:
   backend: 'backend'
   frontend: 'frontend'
+  dashboard: 'dashboard'

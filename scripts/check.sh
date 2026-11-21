@@ -16,6 +16,14 @@ npm ci --no-fund --no-audit
 npm run lint
 npm run build
 
+echo "== dashboard"
+cd "$root/dashboard"
+npm ci --no-fund --no-audit
+npm run lint
+npm run build
+cmp "$root/frontend/src/design.css" "$root/dashboard/src/design.css" \
+  || { echo "frontend/src/design.css and dashboard/src/design.css differ; keep them identical" >&2; exit 1; }
+
 echo "== mobile"
 cd "$root/mobile"
 npm ci --no-fund --no-audit
