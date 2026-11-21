@@ -10,7 +10,8 @@ Nextsci Route Optimisation is an open-source route planning and optimisation pla
 
 - `backend/` — Django 6 API on PostgreSQL (`config/` is the project package). Python venv in `backend/.venv`, deps pinned in `requirements.txt`. Settings come from environment variables, loaded from the repo-root `.env` for local runs.
   - `config/settings/` — `base.py` shared, `dev.py` (default, DEBUG on), `prod.py` (DEBUG off, requires `DJANGO_SECRET_KEY`, HTTPS-only). Select with `DJANGO_SETTINGS_MODULE`.
-  - `apps/<app>/` — one Django app per domain, AppConfig `name = "apps.<app>"`, `label = "<app>"`. Tests live in the app.
+  - `apps/<app>/` — one Django app per domain in a fixed layout (`models.py`, `services.py`, `selectors.py`, `api/`, `tests/`). Create apps with `scripts/new-backend-app.sh <name>`. Layout, import rules, and the planned domain map: `.agents/backend.md`.
+  - `.importlinter` — import contracts that `lint-imports` checks; `requirements-dev.txt` adds dev tools on top of `requirements.txt`.
   - `apps/accounts/` — email-login custom `User` (`AUTH_USER_MODEL = "accounts.User"`) and JWT auth.
   - API is versioned under `/api/v1/`. Auth: `POST auth/token/` (email, password → access, refresh), `POST auth/token/refresh/`, `GET auth/me/`. DRF requires a JWT bearer token by default.
 - `dashboard/` — Vite + React + TypeScript dispatcher app that self-hosters deploy. Opens on sign-in, has no landing page. Calls the API on its own origin (`/api`); in development Vite proxies `/api` to Django (`API_PROXY_TARGET`, default `http://localhost:8000`). Server calls in `src/api/`, custom hooks and TanStack Query in `src/hooks/`, shadcn/ui components on Tailwind CSS v4 in `src/components/ui/`. npm.
@@ -38,6 +39,7 @@ Detailed guidance lives in `.agents/`. Read the relevant file before working in 
 
 - [DESIGNS.md](DESIGNS.md) — design system: colors, type, components, and landing page structure. Read it before any UI work in `dashboard/`, `frontend/`, or `mobile/`.
 - [.agents/ui.md](.agents/ui.md) — rules that keep the website and the dashboard on one design, and how to verify UI work. Read it before changing `frontend/src/` or `dashboard/src/`.
+- [.agents/backend.md](.agents/backend.md) — Django layout: one app per domain, `api` → `services`/`selectors` → `models`, the domain dependency order, and the planned apps. Read it before changing `backend/`.
 - [.agents/react.md](.agents/react.md) — React code layout for the Vite apps: custom hooks in `src/hooks/`, TanStack Query only inside those hooks, server calls in `src/api/`. Read it before writing React code in `dashboard/` or `frontend/`.
 
 ## Commands
@@ -53,8 +55,10 @@ Backend (`cd backend`):
 - Migrate: `.venv/bin/python manage.py migrate`
 - Run: `.venv/bin/python manage.py runserver`
 - Check: `.venv/bin/python manage.py check`
+- Import rules: `.venv/bin/lint-imports` (needs `pip install -r requirements-dev.txt`)
+- New app: `scripts/new-backend-app.sh <name>` (from the repository root)
 - Test: `.venv/bin/python manage.py test` (creates a throwaway test DB, so the Postgres user needs CREATEDB)
-- Add a dependency: `.venv/bin/pip install <pkg> && .venv/bin/pip freeze > requirements.txt`
+- Add a dependency: `.venv/bin/pip install <pkg>`, then add `<pkg>==<version>` by hand to `requirements.txt` (runtime) or `requirements-dev.txt` (tools). Do not `pip freeze` into `requirements.txt`: the venv also holds the dev tools.
 
 Dashboard (`cd dashboard`):
 - Setup: `npm install`
