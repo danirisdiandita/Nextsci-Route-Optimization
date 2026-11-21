@@ -28,11 +28,11 @@ export type RoadmapStatus = 'done' | 'next' | 'planned'
 export type RoadmapItem = { title: string; status: RoadmapStatus }
 
 export const nav = [
-  { label: 'Features', href: '#features' },
-  { label: 'How it works', href: '#how-it-works' },
-  { label: 'Self-host', href: '#self-host' },
-  { label: 'Services', href: '#services' },
-  { label: 'Roadmap', href: '#roadmap' },
+  { label: 'Features', href: '/#features' },
+  { label: 'How it works', href: '/#how-it-works' },
+  { label: 'Self-host', href: '/#self-host' },
+  { label: 'Services', href: '/#services' },
+  { label: 'Roadmap', href: '/#roadmap' },
 ]
 
 export const hero = {
@@ -176,6 +176,45 @@ export const statusLabel: Record<RoadmapStatus, string> = {
   done: 'Done',
   next: 'Next',
   planned: 'Planned',
+}
+
+export type FooterColumn = { title: string; links: { label: string; href: string }[] }
+
+export const footer = {
+  tagline: 'Open-source route planning for delivery and field-service teams.',
+  columns: [
+    {
+      title: 'Product',
+      links: [
+        { label: 'Features', href: '/#features' },
+        { label: 'How it works', href: '/#how-it-works' },
+        { label: 'Roadmap', href: '/#roadmap' },
+      ],
+    },
+    {
+      title: 'Services',
+      links: [
+        { label: 'What we offer', href: '/#services' },
+        { label: 'Contact', href: SERVICES_CONTACT },
+      ],
+    },
+    {
+      title: 'Open source',
+      links: [
+        { label: 'GitHub', href: REPO_URL },
+        { label: 'Self-host guide', href: `${REPO_URL}#quick-start` },
+        { label: 'Issues', href: `${REPO_URL}/issues` },
+      ],
+    },
+    {
+      title: 'Legal',
+      links: [
+        { label: 'Terms of service', href: '/terms/' },
+        { label: 'Privacy policy', href: '/privacy/' },
+      ],
+    },
+  ] satisfies FooterColumn[],
+  note: 'Nextsci is free, open-source software. We offer paid installation, hosting, and consulting, not a hosted cloud service.',
 }
 
 export const cta = {

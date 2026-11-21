@@ -1048,24 +1048,99 @@
 
 .footer {
   border-top: 1px solid var(--border);
-  padding: 32px 0;
+  padding: 64px 0 32px;
+  font-size: var(--font-small);
+  color: var(--text-3);
+}
+
+.footer-top {
+  display: grid;
+  grid-template-columns: 2fr repeat(4, 1fr);
+  gap: 32px;
+}
+
+.footer-about p {
+  margin-top: 12px;
+  max-width: 280px;
+  line-height: 1.6;
+}
+
+.footer-col h2 {
+  margin-bottom: 12px;
+  font-size: var(--font-small);
+  font-weight: 560;
+  color: var(--text);
+}
+
+.footer-col ul {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.footer-col a {
+  color: var(--text-3);
+}
+
+.footer-col a:hover {
+  color: var(--text);
+}
+
+.footer-note {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  color: var(--text-4);
+}
+
+/* Legal pages */
+
+.legal {
+  padding: 96px 0 128px;
+}
+
+.legal-inner {
+  max-width: 720px;
+}
+
+.legal-inner .h2 {
+  margin-top: 12px;
+}
+
+.legal-updated {
+  margin: 12px 0 24px;
   font-size: var(--font-small);
   color: var(--text-4);
 }
 
-.footer-inner {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+.legal section {
+  margin-top: 40px;
 }
 
-.footer-inner > a:last-child {
-  margin-left: auto;
-  color: var(--text-3);
-}
-
-.footer-inner > a:last-child:hover {
+.legal section h2 {
+  margin-bottom: 12px;
+  font-size: var(--font-h3);
+  font-weight: 600;
   color: var(--text);
+}
+
+.legal section p,
+.legal section li {
+  font-size: var(--font-body);
+  line-height: 1.7;
+  color: var(--text-2);
+}
+
+.legal section p + p,
+.legal section p + ul {
+  margin-top: 12px;
+}
+
+.legal section ul {
+  display: grid;
+  gap: 4px;
+  padding-left: 20px;
 }
 
 /* Motion */
@@ -1129,6 +1204,14 @@
   .steps {
     grid-template-columns: 1fr;
     max-width: 480px;
+  }
+
+  .footer-top {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .footer-about {
+    grid-column: 1 / -1;
   }
 }
 
@@ -1196,7 +1279,15 @@
     padding: 112px 0;
   }
 
-  .footer-inner > span {
-    display: none;
+  .footer-top {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .footer-about {
+    grid-column: 1 / -1;
+  }
+
+  .legal {
+    padding: 64px 0 96px;
   }
 }
