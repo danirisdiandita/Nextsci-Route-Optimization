@@ -36,7 +36,7 @@ Pick every row that matches what you changed. The build passing is never enough 
 | Anything | `./scripts/check.sh` | Every app installs, typechecks, builds, and passes the enforced rules and the backend tests |
 | Django models, services, or endpoints | `cd backend && .venv/bin/python manage.py test` | The API behaves as the tests describe. Add a test in the app's `tests/` folder for new behavior |
 | Django imports between modules or apps | `cd backend && .venv/bin/lint-imports` | The layering and the domain order still hold |
-| Dashboard sign-in, sessions, or `src/api/auth.ts` | `./scripts/e2e-dashboard.sh` | Sign-in, wrong-password errors, reloads, token refresh, and sign-out work in Chrome against the real API server |
+| Dashboard sign-in, sessions, `src/api/auth.ts`, or the sidebar shell | `./scripts/e2e-dashboard.sh` | Sign-in, wrong-password errors, reloads, token refresh, the sidebar (collapse, persistence, sections, phone sheet), and sign-out work in Chrome against the real API server |
 | Any screen in the dashboard or the website | `node scripts/screenshot.mjs <url> <file.png> 1280` and again with `390` | The screen renders at desktop and phone width without sideways scrolling. Open the images and look at them |
 | `design.css` | Screenshots of both apps | A shared change shows up in both apps |
 | `compose.yaml` or a `Dockerfile` | `docker compose up --build` on a machine with Docker | The stack starts. If you could not run Docker, say so in the pull request |

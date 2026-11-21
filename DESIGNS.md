@@ -137,6 +137,17 @@ Draw icons as 16px or 20px inline SVG, with a 1.5px stroke, round caps, `current
 
 The dashboard opens on the sign-in screen at [`dashboard/src/App.tsx`](dashboard/src/App.tsx). It is a centered 360px column on `--bg` with a faint accent glow. The column holds the logo, a 24px heading, one line of `--text-3`, two inputs, and one full-width primary button. Inputs are 40px tall on `--surface-inset`. Their focus state is an `--accent` border with an `--accent-soft` ring. Errors appear above the button in a `--danger` tinted box with `role="alert"`. There is no sign-up link, because an administrator creates accounts.
 
+## Dashboard shell
+
+After sign-in, the dashboard shows a sidebar beside the active section. The shell lives in [`dashboard/src/components/AppShell.tsx`](dashboard/src/components/AppShell.tsx), the sidebar in [`AppSidebar.tsx`](dashboard/src/components/AppSidebar.tsx), and the list of sections in [`sections.ts`](dashboard/src/components/sections.ts). Add a section to `sections.ts`, and the sidebar and the main area pick it up.
+
+- **Sidebar.** 256px wide on `--bg-raised`, with a 1px `--border` on its right edge. The header holds the logo and "Nextsci". The middle holds one 36px button per section, each with a 16px icon and a `--font-small` label at weight 500. The footer holds the account button: an initial on a 24px circle and the email. The account button opens a menu with **Sign out**.
+- **Item states.** Labels use `--text-2` and icons use `--text-3`. On hover, the item gets a faint `--surface-hover` fill. The active item has a full `--surface-hover` fill, the inner top highlight, and `--text` for both icon and label. Keyboard focus shows the standard 2px `--accent` outline.
+- **Collapsed.** The sidebar narrows to a 52px icon rail. Labels fade out, and each icon shows its label in a tooltip on hover. Every icon, the logo, and the avatar center on the same vertical line in both states, and every label starts at the same x, so nothing moves sideways. Toggle it with the header button, the rail on the sidebar edge, or Ctrl+B (⌘B on a Mac). A cookie keeps the choice across reloads.
+- **Motion.** The width changes over 200ms with ease-out. It stops under `prefers-reduced-motion: reduce`.
+- **Phone.** Under 768px the sidebar is a sheet that slides in from the left over a dimmed page. Choosing a section closes it.
+- **Main area.** A 56px header holds the sidebar toggle and the section name on the left, and the theme switch on the right. Its bottom border lines up with the sidebar header's border. Below it, the section's empty state is centered: the section icon in a 40px raised square, a 20px title, and a short `--text-3` sentence that says the feature is planned.
+
 ## Landing page structure
 
 The landing page lives in [`frontend/src/landing/`](frontend/src/landing/). It has these sections, in order:

@@ -68,6 +68,12 @@ Each entry is a mistake that this project already made. It gives the symptom you
 - **Cause.** The landing page reveals sections with scroll-driven animations. Sections that were never scrolled into view stay transparent.
 - **Do.** Use `scripts/screenshot.mjs`, which turns on `prefers-reduced-motion`. The design turns animations off under that setting.
 
+### Fixed sleeps in a browser test race the server
+
+- **Symptom.** `scripts/e2e-dashboard.sh` fails now and then: the right password shows "The email or password is incorrect.", and the backend log shows two 401s in the same second.
+- **Cause.** The test slept a fixed time after the wrong-password submit. When the server answered late, the form was still disabled. Disabled inputs drop out of `FormData`, so the next submit sent `null` for the email and password.
+- **Do.** Wait for what the user would see, such as the error box or the sidebar, with the `until` helper in `scripts/e2e/signin.mjs`. Do not add fixed sleeps after a server call.
+
 ### Chrome keeps writing to its profile after it exits
 
 - **Symptom.** Deleting the temporary Chrome profile fails with `ENOTEMPTY`.
