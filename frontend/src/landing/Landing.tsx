@@ -1,6 +1,5 @@
 import './landing.css'
-import { Icon, Logo } from './Icons'
-import { ThemeToggle } from './ThemeToggle'
+import { Icon } from './Icons'
 import {
   DispatchVisual,
   DispatcherFrame,
@@ -15,7 +14,6 @@ import {
   driverApp,
   features,
   hero,
-  nav,
   roadmap,
   selfHost,
   services,
@@ -26,32 +24,6 @@ import {
 } from './content'
 
 const stepVisuals = [ImportVisual, OptimizeVisual, DispatchVisual]
-
-function Nav() {
-  return (
-    <header className="nav">
-      <div className="nav-inner">
-        <a href="#top" className="brand">
-          <Logo />
-          Nextsci
-        </a>
-        <nav className="nav-links" aria-label="Sections">
-          {nav.map((n) => (
-            <a key={n.href} href={n.href}>
-              {n.label}
-            </a>
-          ))}
-        </nav>
-        <div className="nav-actions">
-          <ThemeToggle />
-          <a className="btn btn-secondary btn-sm" href={REPO_URL}>
-            <Icon name="github" /> GitHub
-          </a>
-        </div>
-      </div>
-    </header>
-  )
-}
 
 function Hero() {
   return (
@@ -77,7 +49,7 @@ function Hero() {
         </div>
       </div>
       <div className="container hero-product load">
-        <DispatcherFrame />
+      <DispatcherFrame />
       </div>
     </section>
   )
@@ -252,6 +224,9 @@ function Services() {
           <a className="btn btn-primary" href={services.cta.href}>
             {services.cta.label} <Icon name="arrow" size={14} />
           </a>
+          <p className="services-contact">
+            {services.contact.label}: <a href={services.cta.href}>{services.contact.email}</a>
+          </p>
         </div>
       </div>
     </section>
@@ -300,37 +275,18 @@ function Cta() {
   )
 }
 
-function Footer() {
-  return (
-    <footer className="footer">
-      <div className="container footer-inner">
-        <a href="#top" className="brand">
-          <Logo size={18} />
-          Nextsci
-        </a>
-        <span>Open-source route planning.</span>
-        <a href={REPO_URL}>GitHub</a>
-      </div>
-    </footer>
-  )
-}
-
 export default function Landing() {
   return (
-    <>
-      <Nav />
-      <main>
-        <Hero />
-        <Values />
-        <Features />
-        <HowItWorks />
-        <Spotlights />
-        <SelfHost />
-        <Services />
-        <Roadmap />
-        <Cta />
-      </main>
-      <Footer />
-    </>
+    <main>
+      <Hero />
+      <Values />
+      <Features />
+      <HowItWorks />
+      <Spotlights />
+      <SelfHost />
+      <Services />
+      <Roadmap />
+      <Cta />
+    </main>
   )
 }

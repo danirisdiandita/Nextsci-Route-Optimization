@@ -160,7 +160,9 @@ The landing page lives in [`frontend/src/landing/`](frontend/src/landing/). It h
 6. **Spotlights.** Alternating text and product frames for the solver and the driver app.
 7. **Self-host.** The commands to run the stack, in a code frame.
 8. **Roadmap.** Each planned capability with its status.
-9. **Call to action and footer.**
+9. **Call to action and footer.** The footer shows the logo and a tagline, four link columns (Product, Services, Open source, Legal), and a note that Nextsci is open source with paid services and no hosted cloud. It appears on every page.
+
+The terms of service (`/terms/`) and privacy policy (`/privacy/`) share the navigation and footer. Their body is a 720px column: the eyebrow, the title in `.h2`, the date it was last updated, a lead, then sections with `--font-h3` headings and `--font-body` text.
 
 All copy lives in [`frontend/src/landing/content.ts`](frontend/src/landing/content.ts). Change the copy there, not in the components.
 
