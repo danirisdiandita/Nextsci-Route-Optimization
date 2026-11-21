@@ -1,0 +1,37 @@
+name: Deploy landing page to Railway
+
+# Deploys only the project website in frontend/. The dashboard, backend, and mobile app are self-hosted and never deploy from here.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/landing-railway.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: landing-railway-main
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install --global @railway/cli
+
+      - name: Deploy to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_LANDING_PAGE_SERVICE_ID }}
+        # Uploads frontend/ only; Railway builds frontend/Dockerfile. The project token pins project and environment.
+        run: railway up --ci --detach --service "$RAILWAY_SERVICE_ID"
