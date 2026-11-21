@@ -8,9 +8,11 @@ Nextsci Route Optimisation is an open-source route planning and optimisation pla
 
 ## Repository layout
 
-- `backend/` — Django 6 API (`config/` is the project package). Python venv in `backend/.venv`, deps pinned in `requirements.txt`.
+- `backend/` — Django 6 API on PostgreSQL (`config/` is the project package). Python venv in `backend/.venv`, deps pinned in `requirements.txt`. Settings come from environment variables, loaded from the repo-root `.env` for local runs.
 - `frontend/` — Vite + React + TypeScript web app for dispatchers. npm.
 - `mobile/` — Expo (SDK 58) + Expo Router React Native app for drivers. npm. Read `mobile/AGENTS.md` before touching it.
+- `compose.yaml` — runs Postgres, backend, frontend, and the Expo dev server together
+- `.env.example` — every config variable; copy to `.env` (gitignored)
 - `scripts/check.sh` — installs, typechecks, and builds all three apps; run before declaring work done
 - `README.md` — project overview
 - `AGENTS.md` — this file; the single source of truth for agent instructions
@@ -30,8 +32,11 @@ Detailed guidance lives in `.agents/`. Read the relevant file before working in 
 
 Verify everything: `./scripts/check.sh`
 
+Whole stack in Docker: `cp .env.example .env && docker compose up --build`. Ports: backend 8000, frontend 5173, Metro 8081, Postgres `POSTGRES_HOST_PORT` (default 5432). Set `HOST_LAN_IP` in `.env` so Expo Go on a phone can reach Metro.
+
 Backend (`cd backend`):
-- Setup: `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`
+- Setup: `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`, then fill the `POSTGRES_*` values in the repo-root `.env` for a running Postgres
+- Migrate: `.venv/bin/python manage.py migrate`
 - Run: `.venv/bin/python manage.py runserver`
 - Check: `.venv/bin/python manage.py check`
 - Add a dependency: `.venv/bin/pip install <pkg> && .venv/bin/pip freeze > requirements.txt`
