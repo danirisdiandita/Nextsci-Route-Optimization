@@ -10,7 +10,7 @@ These rules apply to `dashboard/` and `frontend/`. Both are Vite + React + TypeS
 | `src/hooks/` | Custom React hooks, one per file, and `queryKeys.ts` | Yes |
 | everything else in `src/` | Components and styles | Yes |
 
-1. **Every custom hook lives in `src/hooks/`.** Put each hook in its own file, named after the hook: `useRoutes` goes in `src/hooks/useRoutes.ts`, exported as `export function useRoutes`. A component file never defines a hook, not even a small one.
+1. **Every custom hook lives in `src/hooks/`.** Put each hook in its own file, named after the hook: `useRoutes` goes in `src/hooks/useRoutes.ts`, exported as `export function useRoutes`. A component file never defines a hook, not even a small one. The one exception is `src/components/ui/`, which holds shadcn code that may keep its internal hooks, such as `useFormField`.
 2. **TanStack Query appears only in `src/hooks/`.** `useQuery`, `useMutation`, `useQueryClient`, and every other import from `@tanstack/react-query` belong in a hook. The one exception is `src/main.tsx`, which creates the `QueryClient` and wraps the app in `QueryClientProvider`.
 3. **Every file in `src/hooks/` is a hook, except `queryKeys.ts`.** Do not put helpers, types, or API calls there.
 4. **Only `src/api/` calls `fetch`.** A hook calls an API function. A component calls a hook.

@@ -9,7 +9,7 @@ Nextsci Route Optimisation is an open-source route planning and optimisation pla
 ## Repository layout
 
 - `backend/` — Django 6 API on PostgreSQL (`config/` is the project package). Python venv in `backend/.venv`, deps pinned in `requirements.txt`. Settings come from environment variables, loaded from the repo-root `.env` for local runs.
-- `dashboard/` — Vite + React + TypeScript dispatcher app that self-hosters deploy. Opens on sign-in, has no landing page. Calls the API on its own origin (`/api`); in development Vite proxies `/api` to Django (`API_PROXY_TARGET`, default `http://localhost:8000`). Server calls in `src/api/`, custom hooks and TanStack Query in `src/hooks/`. npm.
+- `dashboard/` — Vite + React + TypeScript dispatcher app that self-hosters deploy. Opens on sign-in, has no landing page. Calls the API on its own origin (`/api`); in development Vite proxies `/api` to Django (`API_PROXY_TARGET`, default `http://localhost:8000`). Server calls in `src/api/`, custom hooks and TanStack Query in `src/hooks/`, shadcn/ui components on Tailwind CSS v4 in `src/components/ui/`. npm.
 - `frontend/` — Vite + React + TypeScript public project website with the landing page in `src/landing/`. Not part of a self-hosted deployment. npm.
 - `frontend/src/design.css` and `dashboard/src/design.css` — identical copies of the design tokens, base styles, and shared components. Edit one and copy it to the other; `scripts/check-design.sh` fails if they differ.
 - `scripts/check-design.sh` — enforces the UI rules in `.agents/ui.md`; `scripts/check.sh` runs it

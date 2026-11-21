@@ -2,6 +2,8 @@
 
 Nextsci uses one visual language for the website, the dispatcher web app, and the driver app. It is dark, quiet, and precise. Content carries the color. The interface around it stays neutral.
 
+The dashboard renders these tokens through shadcn/ui components on Tailwind CSS. `dashboard/src/tailwind.css` maps shadcn's names to the tokens. The website uses plain CSS. [`.agents/ui.md`](.agents/ui.md) has the rules for both.
+
 The tokens below exist as CSS custom properties in `design.css`. The dashboard and the website each have an identical copy, [`dashboard/src/design.css`](dashboard/src/design.css) and [`frontend/src/design.css`](frontend/src/design.css). Change both copies in the same commit. `scripts/check.sh` fails when they differ. Use the variables in code. Do not paste raw hex values into components.
 
 ## Principles
