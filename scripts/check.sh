@@ -22,6 +22,7 @@ npm ci --no-fund --no-audit
 npm run lint
 npm run build
 "$root/scripts/check-design.sh"
+"$root/scripts/check-react.sh"
 
 echo "== mobile"
 cd "$root/mobile"
