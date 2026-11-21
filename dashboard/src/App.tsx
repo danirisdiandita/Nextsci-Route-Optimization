@@ -1,12 +1,11 @@
 import type { FormEvent } from 'react'
-import type { User } from '@/api/auth'
+import { AppShell } from '@/components/AppShell'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { useSession } from '@/hooks/useSession'
 import { useSignIn } from '@/hooks/useSignIn'
-import { useSignOut } from '@/hooks/useSignOut'
 
 function Logo({ size = 28 }: { size?: number }) {
   return <img src="/favicon.svg" width={size} height={size} alt="" />
@@ -60,31 +59,8 @@ function SignIn() {
   )
 }
 
-function Home({ user }: { user: User }) {
-  const signOut = useSignOut()
-  return (
-    <div>
-      <header className="flex h-14 items-center gap-4 border-b px-5">
-        <div className="brand mr-auto">
-          <Logo size={22} />
-          Nextsci
-        </div>
-        <span className="text-sm text-muted-foreground">{user.email}</span>
-        <ThemeToggle />
-        <Button variant="secondary" onClick={signOut}>
-          Sign out
-        </Button>
-      </header>
-      <main className="grid min-h-[calc(100vh-57px)] place-content-center gap-2 p-6 text-center">
-        <h1 className="text-xl font-semibold tracking-[-0.012em]">No routes yet</h1>
-        <p className="text-muted-foreground">You are signed in. Route planning arrives with the next releases.</p>
-      </main>
-    </div>
-  )
-}
-
 export default function App() {
   const session = useSession()
   if (session.isPending) return <main className="min-h-screen" aria-busy="true" />
-  return session.data ? <Home user={session.data.user} /> : <SignIn />
+  return session.data ? <AppShell user={session.data.user} /> : <SignIn />
 }
