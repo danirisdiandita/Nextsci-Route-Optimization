@@ -21,6 +21,8 @@ Nextsci Route Optimisation is an open-source route planning and optimisation pla
 - `scripts/check-react.sh` — enforces the React code layout in `.agents/react.md`; `scripts/check.sh` runs it
 - `dashboard/AGENTS.md`, `frontend/AGENTS.md` — per-app pointers to the rules below, loaded by agents working inside each app
 - `scripts/screenshot.mjs` — full-page screenshot of a running app at an exact width, including widths under 500px
+- `scripts/e2e-dashboard.sh` — end-to-end dashboard sign-in test in Chrome against a throwaway database; drives `scripts/e2e/signin.mjs`
+- `scripts/check-docs.sh` — fails when a doc in `.agents/` is not indexed or a relative markdown link breaks; `scripts/check.sh` runs it
 - `mobile/` — Expo (SDK 58) + Expo Router React Native app for drivers. npm. Read `mobile/AGENTS.md` before touching it.
 - `compose.yaml` — runs Postgres, backend, dashboard, and the Expo dev server together
 - `.env.example` — every config variable; copy to `.env` (gitignored)
@@ -31,12 +33,14 @@ Nextsci Route Optimisation is an open-source route planning and optimisation pla
 - `docs/admin.md` — how-to for creating the master admin (Django superuser), signing in to the dashboard, and adding accounts. Update it when account or sign-in behavior changes.
 - `AGENTS.md` — this file; the single source of truth for agent instructions
 - `CLAUDE.md` — imports this file for Claude Code
-- `.agents/` — detailed agent docs referenced below
+- `.agents/` — agent rules, workflow, and lessons; index in `.agents/README.md`
 
 ## Agent docs
 
-Detailed guidance lives in `.agents/`. Read the relevant file before working in that area:
+Detailed guidance lives in `.agents/`. Start with [.agents/README.md](.agents/README.md): it holds the rules for every change, says which doc covers which area, and lists every enforced check. Read the relevant file before working in that area:
 
+- [.agents/workflow.md](.agents/workflow.md) — set up, run the apps, branch and commit, and verify each kind of change. Read it before your first change.
+- [.agents/lessons.md](.agents/lessons.md) — mistakes this project already made, with the symptom, the cause, and the fix. Read the section for your area.
 - [DESIGNS.md](DESIGNS.md) — design system: colors, type, components, and landing page structure. Read it before any UI work in `dashboard/`, `frontend/`, or `mobile/`.
 - [.agents/ui.md](.agents/ui.md) — rules that keep the website and the dashboard on one design, and how to verify UI work. Read it before changing `frontend/src/` or `dashboard/src/`.
 - [.agents/backend.md](.agents/backend.md) — Django layout: one app per domain, `api` → `services`/`selectors` → `models`, the domain dependency order, and the planned apps. Read it before changing `backend/`.
@@ -79,6 +83,8 @@ Mobile (`cd mobile`):
 - Add a dependency: `npx expo install <pkg>` (never plain `npm install`)
 
 ## Conventions
+
+The rules for every change are in `.agents/README.md`. In short:
 
 - Keep changes small and focused; don't add unrelated refactors.
 - Add or update tests alongside behaviour changes.
