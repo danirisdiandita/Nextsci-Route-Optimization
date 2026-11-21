@@ -1,6 +1,14 @@
 $schema: 'https://moonrepo.dev/schemas/project.json'
 
 tasks:
+  install:
+    script: '[ -d .venv ] || python3 -m venv .venv; .venv/bin/pip install -q -r requirements.txt'
+    inputs:
+      - 'requirements.txt'
+    options:
+      cache: false
   dev:
     command: '.venv/bin/python manage.py runserver'
+    deps:
+      - '~:install'
     preset: 'server'

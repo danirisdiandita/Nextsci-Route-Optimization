@@ -31,7 +31,7 @@ Detailed guidance lives in `.agents/`. Read the relevant file before working in 
 
 Verify everything: `./scripts/check.sh`
 
-Run backend and frontend together: `moon run :dev` (needs `backend/.venv` and `frontend/node_modules` set up first)
+Run backend and frontend together: `moon run :dev` (installs backend deps into `backend/.venv` first; `frontend/node_modules` must be set up)
 
 Whole stack in Docker: `cp .env.example .env && docker compose up --build`. Ports: backend 8000, frontend 5173, Metro 8081, Postgres `POSTGRES_HOST_PORT` (default 5432). Set `HOST_LAN_IP` in `.env` so Expo Go on a phone can reach Metro.
 
