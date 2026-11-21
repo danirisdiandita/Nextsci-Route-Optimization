@@ -1,0 +1,5 @@
+"""Write operations for {{ app_name }}: create, update, and delete, with their business rules.
+
+Each service is a function with keyword-only arguments. It validates, writes, and returns model instances.
+Wrap multi-step writes in transaction.atomic(). The api layer and other apps call these; they never write models directly.
+"""
