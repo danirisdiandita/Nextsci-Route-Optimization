@@ -22,7 +22,7 @@ Nextsci Route Optimisation is an open-source route planning and optimisation pla
 - `dashboard/AGENTS.md`, `frontend/AGENTS.md` — per-app pointers to the rules below, loaded by agents working inside each app
 - `scripts/screenshot.mjs` — full-page screenshot of a running app at an exact width, including widths under 500px
 - `scripts/e2e/theme.mjs` — end-to-end test of the System, Light, and Dark theme switch against a running app (dashboard or website)
-- `scripts/e2e-dashboard.sh` — end-to-end dashboard test in Chrome against a throwaway database: sign-in, the sidebar, and sign-out; drives `scripts/e2e/signin.mjs`
+- `scripts/e2e-dashboard.sh` — end-to-end dashboard test in Chrome against a throwaway database: sign-in, the sidebar, the theme switch, and sign-out (`COLOR_SCHEME=light|dark` sets the screenshots' theme); drives `scripts/e2e/signin.mjs`
 - `scripts/check-docs.sh` — fails when a doc in `.agents/` is not indexed or a relative markdown link breaks; `scripts/check.sh` runs it
 - `mobile/` — Expo (SDK 58) + Expo Router React Native app for drivers. npm. Read `mobile/AGENTS.md` before touching it.
 - `compose.yaml` — runs Postgres, backend, dashboard, and the Expo dev server together

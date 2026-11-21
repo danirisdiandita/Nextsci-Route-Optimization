@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # End-to-end test of dashboard sign-in against the real Django backend, in Chrome.
 #   scripts/e2e-dashboard.sh [screenshot-dir]
+# Set COLOR_SCHEME=light or COLOR_SCHEME=dark to take the screenshots in that theme.
 # Creates a throwaway database and user, starts Django and the dashboard on spare ports,
 # runs scripts/e2e/signin.mjs, and removes everything it created, even when a step fails.
 # Needs: PostgreSQL reachable with the credentials in .env, backend/.venv, dashboard/node_modules, Chrome.

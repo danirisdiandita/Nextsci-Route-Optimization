@@ -1,5 +1,6 @@
 // Drives the dashboard sign-in flow in Chrome over the DevTools protocol. Run it through scripts/e2e-dashboard.sh.
 //   node scripts/e2e/signin.mjs <chrome-debug-port> <dashboard-url> <screenshot-dir> <email> <password>
+// Set COLOR_SCHEME=light or COLOR_SCHEME=dark to emulate the OS theme, so the screenshots show that theme.
 const [port, base, out, email, password] = process.argv.slice(2)
 const target = await (await fetch(`http://127.0.0.1:${port}/json/new?about:blank`, { method: 'PUT' })).json()
 const ws = new WebSocket(target.webSocketDebuggerUrl)
@@ -47,6 +48,9 @@ const sidebar = () => js(`(() => {
   return s && { state: s.dataset.state, width: Math.round(box.width), routesLabelVisible: !!label?.checkVisibility({ opacityProperty: true }) }
 })()`)
 const heading = () => js('document.querySelector("main h1")?.textContent')
+const RAISED = { light: 'rgb(245, 246, 247)', dark: 'rgb(14, 15, 16)' }
+const sidebarBg = () => js('getComputedStyle(document.querySelector("[data-slot=sidebar-inner]")).backgroundColor')
+const pressedTheme = () => js(`document.querySelector('[aria-label$=" theme"][aria-pressed="true"]')?.getAttribute('aria-label')`)
 let failed = 0
 const check = (label, cond, detail) => {
   if (!cond) failed++
@@ -54,6 +58,7 @@ const check = (label, cond, detail) => {
 }
 
 await send('Page.enable'); await send('Runtime.enable')
+if (process.env.COLOR_SCHEME) await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: process.env.COLOR_SCHEME }] })
 await send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 800, deviceScaleFactor: 1, mobile: false })
 await go(base)
 await js(`localStorage.clear(); document.cookie = 'sidebar_state=; path=/; max-age=0'`); await go(base)
@@ -73,6 +78,15 @@ let bar = await sidebar()
 check('sidebar starts expanded with the Routes label showing', bar?.state === 'expanded' && bar.width > 200 && bar.routesLabelVisible, JSON.stringify(bar))
 check('main area opens on Routes', (await heading()) === 'Routes' && t.includes('No routes yet'), await heading())
 await shot('dash-home')
+
+for (const theme of ['light', 'dark']) {
+  const label = `${theme[0].toUpperCase()}${theme.slice(1)} theme`
+  await clickAt(`document.querySelector('header [aria-label="${label}"]')`); await sleep(200)
+  const bg = await sidebarBg()
+  check(`the header switch turns the sidebar ${theme}`, bg === RAISED[theme] && (await pressedTheme()) === label, bg)
+}
+await clickAt(`document.querySelector('header [aria-label="System theme"]')`); await sleep(200)
+check('the header switch returns to the system theme', (await pressedTheme()) === 'System theme' && !(await js('document.documentElement.dataset.theme')))
 
 await clickAt(navButton('Drivers')); await sleep(300)
 check('clicking Drivers switches the main heading', (await heading()) === 'Drivers' && (await text()).includes('No drivers yet'), await heading())
