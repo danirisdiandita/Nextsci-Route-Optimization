@@ -34,7 +34,7 @@ export const nav = [
 ]
 
 export const hero = {
-  pill: 'Early development. Follow along on GitHub',
+  pill: 'Coming soon. Follow along on GitHub',
   title: 'Plan every delivery route in minutes',
   lead: "Nextsci is open-source route planning for delivery and field-service teams. Import the day's orders, let the solver build the routes, and track every driver live.",
   primary: { label: 'Get started', href: `${REPO_URL}#quick-start` },
