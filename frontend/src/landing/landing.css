@@ -493,8 +493,24 @@
 
 .services-actions {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
   margin-top: 32px;
+}
+
+.services-contact {
+  color: var(--text-3);
+  font-size: var(--font-small);
+}
+
+.services-contact a {
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+
+.services-contact a:hover {
+  color: var(--accent);
 }
 
 .card {

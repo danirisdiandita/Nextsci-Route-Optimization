@@ -252,6 +252,9 @@ function Services() {
           <a className="btn btn-primary" href={services.cta.href}>
             {services.cta.label} <Icon name="arrow" size={14} />
           </a>
+          <p className="services-contact">
+            {services.contact.label}: <a href={services.cta.href}>{services.contact.email}</a>
+          </p>
         </div>
       </div>
     </section>

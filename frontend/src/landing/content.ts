@@ -1,6 +1,8 @@
 export const REPO_URL = 'https://github.com/danirisdiandita/Nextsci-Route-Optimization'
 
-export const SERVICES_CONTACT = `${REPO_URL}/issues/new?title=Services%20inquiry&labels=services`
+export const SERVICES_EMAIL = 'norma.risdiandita@gmail.com'
+
+export const SERVICES_CONTACT = `mailto:${SERVICES_EMAIL}?subject=Nextsci%20services%20inquiry`
 
 export type IconName =
   | 'route'
@@ -154,6 +156,7 @@ export const services = {
     },
   ] satisfies Feature[],
   cta: { label: 'Ask about services', href: SERVICES_CONTACT },
+  contact: { label: 'Contact', email: SERVICES_EMAIL },
 }
 
 export const roadmap: RoadmapItem[] = [
