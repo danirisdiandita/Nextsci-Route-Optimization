@@ -1,0 +1,48 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/*
+ * Maps the names that shadcn components use onto the tokens in design.css.
+ * Define no colors here. Change a token in design.css, then every component follows.
+ * Never add a :root block: shadcn's default --accent, --border, and --radius would override the design tokens.
+ */
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--text);
+  --color-popover: var(--surface);
+  --color-popover-foreground: var(--text);
+  --color-primary: var(--fill-primary);
+  --color-primary-foreground: var(--bg);
+  --color-secondary: var(--surface);
+  --color-secondary-foreground: var(--text);
+  --color-muted: var(--surface-hover);
+  --color-muted-foreground: var(--text-3);
+  --color-accent: var(--surface-hover);
+  --color-accent-foreground: var(--text);
+  --color-destructive: var(--danger);
+  --color-border: var(--border);
+  --color-input: var(--border);
+  --color-inset: var(--surface-inset);
+  --color-ring: var(--accent);
+  --color-brand: var(--accent);
+  --color-brand-soft: var(--accent-soft);
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 6px;
+  --radius-xl: 10px;
+  --radius-2xl: 16px;
+
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 15px;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+}
