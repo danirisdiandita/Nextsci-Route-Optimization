@@ -452,6 +452,12 @@
   overflow: hidden;
 }
 
+.services-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+}
+
 .card {
   background: var(--bg);
   padding: 28px 24px 32px;

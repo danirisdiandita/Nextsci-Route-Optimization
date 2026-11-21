@@ -1,5 +1,7 @@
 export const REPO_URL = 'https://github.com/danirisdiandita/Nextsci-Route-Optimization'
 
+export const SERVICES_CONTACT = `${REPO_URL}/issues/new?title=Services%20inquiry&labels=services`
+
 export type IconName =
   | 'route'
   | 'upload'
@@ -12,6 +14,8 @@ export type IconName =
   | 'server'
   | 'coins'
   | 'code'
+  | 'wrench'
+  | 'chat'
 
 export type Feature = { icon: IconName; title: string; body: string }
 
@@ -25,6 +29,7 @@ export const nav = [
   { label: 'Features', href: '#features' },
   { label: 'How it works', href: '#how-it-works' },
   { label: 'Self-host', href: '#self-host' },
+  { label: 'Services', href: '#services' },
   { label: 'Roadmap', href: '#roadmap' },
 ]
 
@@ -120,6 +125,35 @@ export const selfHost = {
     'cp .env.example .env',
     'docker compose up --build',
   ],
+}
+
+export const services = {
+  eyebrow: 'Services',
+  title: 'Rather not run it yourself? We can help',
+  body: 'Nextsci is free to self-host. If your team wants it running without the setup work, we install, host, and fit it to the way you deliver.',
+  items: [
+    {
+      icon: 'wrench',
+      title: 'Installation',
+      body: 'We install Nextsci on your servers or cloud account and load your depots, vehicles, and drivers.',
+    },
+    {
+      icon: 'server',
+      title: 'Managed hosting',
+      body: 'We run Nextsci for you on a server of its own, with backups, updates, and monitoring.',
+    },
+    {
+      icon: 'code',
+      title: 'Integrations',
+      body: 'We connect Nextsci to your order system or ERP, so orders flow in and delivery updates flow back.',
+    },
+    {
+      icon: 'chat',
+      title: 'Consultation',
+      body: 'We look at how your team plans routes today and help you describe your time windows, shifts, and service areas.',
+    },
+  ] satisfies Feature[],
+  cta: { label: 'Ask about services', href: SERVICES_CONTACT },
 }
 
 export const roadmap: RoadmapItem[] = [

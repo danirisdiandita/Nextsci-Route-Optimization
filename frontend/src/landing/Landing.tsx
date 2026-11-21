@@ -17,6 +17,7 @@ import {
   nav,
   roadmap,
   selfHost,
+  services,
   solver,
   statusLabel,
   steps,
@@ -227,9 +228,35 @@ function SelfHost() {
   )
 }
 
+function Services() {
+  return (
+    <section className="section" id="services">
+      <div className="container">
+        <SectionHead eyebrow={services.eyebrow} title={services.title} body={services.body} />
+        <div className="feature-grid">
+          {services.items.map((s) => (
+            <article key={s.title} className="card reveal">
+              <div className="card-icon">
+                <Icon name={s.icon} size={18} />
+              </div>
+              <h3>{s.title}</h3>
+              <p>{s.body}</p>
+            </article>
+          ))}
+        </div>
+        <div className="services-actions reveal">
+          <a className="btn btn-primary" href={services.cta.href}>
+            {services.cta.label} <Icon name="arrow" size={14} />
+          </a>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function Roadmap() {
   return (
-    <section className="section" id="roadmap">
+    <section className="section section-raised" id="roadmap">
       <div className="container">
         <SectionHead
           eyebrow="Roadmap"
@@ -295,6 +322,7 @@ export default function Landing() {
         <HowItWorks />
         <Spotlights />
         <SelfHost />
+        <Services />
         <Roadmap />
         <Cta />
       </main>
