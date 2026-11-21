@@ -44,6 +44,12 @@
   --color-ring: var(--accent);
   --color-brand: var(--accent);
   --color-brand-soft: var(--accent-soft);
+  --color-sidebar: var(--bg-raised);
+  --color-sidebar-foreground: var(--text-2);
+  --color-sidebar-accent: var(--surface-hover);
+  --color-sidebar-accent-foreground: var(--text);
+  --color-sidebar-border: var(--border);
+  --color-sidebar-ring: var(--accent);
 
   --radius-sm: 4px;
   --radius-md: 6px;
