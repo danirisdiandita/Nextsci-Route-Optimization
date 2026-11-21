@@ -9,6 +9,10 @@ Nextsci Route Optimisation is an open-source route planning and optimisation pla
 ## Repository layout
 
 - `backend/` — Django 6 API on PostgreSQL (`config/` is the project package). Python venv in `backend/.venv`, deps pinned in `requirements.txt`. Settings come from environment variables, loaded from the repo-root `.env` for local runs.
+  - `config/settings/` — `base.py` shared, `dev.py` (default, DEBUG on), `prod.py` (DEBUG off, requires `DJANGO_SECRET_KEY`, HTTPS-only). Select with `DJANGO_SETTINGS_MODULE`.
+  - `apps/<app>/` — one Django app per domain, AppConfig `name = "apps.<app>"`, `label = "<app>"`. Tests live in the app.
+  - `apps/accounts/` — email-login custom `User` (`AUTH_USER_MODEL = "accounts.User"`) and JWT auth.
+  - API is versioned under `/api/v1/`. Auth: `POST auth/token/` (email, password → access, refresh), `POST auth/token/refresh/`, `GET auth/me/`. DRF requires a JWT bearer token by default.
 - `dashboard/` — Vite + React + TypeScript dispatcher app that self-hosters deploy. Opens on sign-in, has no landing page. Calls the API on its own origin (`/api`); in development Vite proxies `/api` to Django (`API_PROXY_TARGET`, default `http://localhost:8000`). Server calls in `src/api/`, custom hooks and TanStack Query in `src/hooks/`, shadcn/ui components on Tailwind CSS v4 in `src/components/ui/`. npm.
 - `frontend/` — Vite + React + TypeScript public project website with the landing page in `src/landing/`. Not part of a self-hosted deployment. npm.
 - `frontend/src/design.css` and `dashboard/src/design.css` — identical copies of the design tokens, base styles, and shared components. Edit one and copy it to the other; `scripts/check-design.sh` fails if they differ.
@@ -48,6 +52,7 @@ Backend (`cd backend`):
 - Migrate: `.venv/bin/python manage.py migrate`
 - Run: `.venv/bin/python manage.py runserver`
 - Check: `.venv/bin/python manage.py check`
+- Test: `.venv/bin/python manage.py test` (creates a throwaway test DB, so the Postgres user needs CREATEDB)
 - Add a dependency: `.venv/bin/pip install <pkg> && .venv/bin/pip freeze > requirements.txt`
 
 Dashboard (`cd dashboard`):
