@@ -1,4 +1,4 @@
-/* Design tokens. DESIGNS.md documents every value. */
+/* Shared by frontend/ and dashboard/. Edit both copies together; scripts/check.sh fails if they differ. DESIGNS.md documents every value. */
 :root {
   --bg: #08090a;
   --bg-raised: #0e0f10;
