@@ -46,7 +46,8 @@
   --color-brand-soft: var(--accent-soft);
   --color-sidebar: var(--bg-raised);
   --color-sidebar-foreground: var(--text-2);
-  --color-sidebar-accent: var(--surface-hover);
+  /* --surface-hover is a hover on --surface. On the sidebar's --bg-raised it vanishes in light, so tint the text color. */
+  --color-sidebar-accent: color-mix(in srgb, var(--text) 5%, transparent);
   --color-sidebar-accent-foreground: var(--text);
   --color-sidebar-border: var(--border);
   --color-sidebar-ring: var(--accent);
