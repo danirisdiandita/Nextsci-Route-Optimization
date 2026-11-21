@@ -11,7 +11,9 @@ Nextsci Route Optimisation is an open-source route planning and optimisation pla
 - `backend/` — Django 6 API on PostgreSQL (`config/` is the project package). Python venv in `backend/.venv`, deps pinned in `requirements.txt`. Settings come from environment variables, loaded from the repo-root `.env` for local runs.
 - `dashboard/` — Vite + React + TypeScript dispatcher app that self-hosters deploy. Opens on sign-in, has no landing page. Calls the API on its own origin (`/api`); in development Vite proxies `/api` to Django (`API_PROXY_TARGET`, default `http://localhost:8000`). npm.
 - `frontend/` — Vite + React + TypeScript public project website with the landing page in `src/landing/`. Not part of a self-hosted deployment. npm.
-- `frontend/src/design.css` and `dashboard/src/design.css` — identical copies of the design tokens and base styles. Edit both; `scripts/check.sh` fails if they differ.
+- `frontend/src/design.css` and `dashboard/src/design.css` — identical copies of the design tokens, base styles, and shared components. Edit one and copy it to the other; `scripts/check-design.sh` fails if they differ.
+- `scripts/check-design.sh` — enforces the UI rules in `.agents/ui.md`; `scripts/check.sh` runs it
+- `scripts/screenshot.mjs` — full-page screenshot of a running app at an exact width, including widths under 500px
 - `mobile/` — Expo (SDK 58) + Expo Router React Native app for drivers. npm. Read `mobile/AGENTS.md` before touching it.
 - `compose.yaml` — runs Postgres, backend, dashboard, and the Expo dev server together
 - `.env.example` — every config variable; copy to `.env` (gitignored)
@@ -28,6 +30,7 @@ Nextsci Route Optimisation is an open-source route planning and optimisation pla
 Detailed guidance lives in `.agents/`. Read the relevant file before working in that area:
 
 - [DESIGNS.md](DESIGNS.md) — design system: colors, type, components, and landing page structure. Read it before any UI work in `dashboard/`, `frontend/`, or `mobile/`.
+- [.agents/ui.md](.agents/ui.md) — rules that keep the website and the dashboard on one design, and how to verify UI work. Read it before changing `frontend/src/` or `dashboard/src/`.
 
 ## Commands
 

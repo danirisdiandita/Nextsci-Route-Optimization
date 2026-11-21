@@ -40,6 +40,9 @@ The tokens below exist as CSS custom properties in `design.css`. The dashboard a
 | `--success` | `#4cc38a` | Delivered, on time |
 | `--warning` | `#f5b544` | At risk, late soon |
 | `--danger` | `#ef5a5a` | Failed, late |
+| `--danger-text` | `#f6a4a4` | Error message text on a `--danger` tint |
+| `--fill-primary` | `#e8e9ea` | Primary button background |
+| `--fill-primary-hover` | `#ffffff` | Primary button background on hover |
 
 ### Route colors
 
@@ -80,11 +83,15 @@ Headings use `--text`. Give the hero heading a vertical gradient from `--text` t
 
 ## Components
 
+The buttons, the `.brand` logo lockup, and the `.dot` status marker live in the shared components section of `design.css`. Both apps use those classes as they are. The components below that section are specified here, and each app builds them from tokens.
+
+The logo is `public/favicon.svg`, the same file in both apps. Render it with an `<img>` element. Do not inline a copy of its SVG.
+
 ### Buttons
 
 | Variant | Background | Text | Border | Use |
 | --- | --- | --- | --- | --- |
-| Primary | `#e8e9ea` | `#08090a` | none | One main action per view |
+| Primary | `--fill-primary` | `--bg` | none | One main action per view |
 | Secondary | `--surface` | `--text` | `--border` | Other actions |
 | Ghost | transparent | `--text-3` | none | Navigation and tertiary actions |
 
