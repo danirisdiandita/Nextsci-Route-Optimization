@@ -60,16 +60,16 @@ function MapStreets() {
   const xs = Array.from({ length: 16 }, (_, i) => 20 + i * 40)
   const ys = Array.from({ length: 10 }, (_, i) => 20 + i * 40)
   return (
-    <g stroke="rgb(255 255 255 / 0.055)" strokeWidth="1">
+    <g style={{ stroke: 'color-mix(in srgb, var(--text) 5.5%, transparent)' }} strokeWidth="1">
       {xs.map((x) => (
         <line key={`x${x}`} x1={x} y1="0" x2={x} y2="400" />
       ))}
       {ys.map((y) => (
         <line key={`y${y}`} x1="0" y1={y} x2="620" y2={y} />
       ))}
-      <path d="M0 360 C 160 300, 260 380, 420 300 S 620 250, 640 240" stroke="rgb(94 155 255 / 0.10)" strokeWidth="14" fill="none" />
-      <path d="M40 0 L 600 400" stroke="rgb(255 255 255 / 0.09)" strokeWidth="2" />
-      <path d="M0 90 L 620 150" stroke="rgb(255 255 255 / 0.09)" strokeWidth="2" />
+      <path d="M0 360 C 160 300, 260 380, 420 300 S 620 250, 640 240" style={{ stroke: 'color-mix(in srgb, var(--accent) 10%, transparent)' }} strokeWidth="14" fill="none" />
+      <path d="M40 0 L 600 400" style={{ stroke: 'color-mix(in srgb, var(--text) 9%, transparent)' }} strokeWidth="2" />
+      <path d="M0 90 L 620 150" style={{ stroke: 'color-mix(in srgb, var(--text) 9%, transparent)' }} strokeWidth="2" />
     </g>
   )
 }
