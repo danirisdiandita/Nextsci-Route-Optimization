@@ -74,13 +74,13 @@ You need [Docker](https://docs.docker.com/get-docker/) with Compose. The stack s
 	docker compose up --build
 	```
 
-4. Create your first account. The dashboard has no sign-up page, so accounts come from the server.
+4. Create the master admin. The dashboard has no sign-up page, so accounts come from the server. The command asks for an email address and a password.
 
 	```bash
 	docker compose exec backend python manage.py createsuperuser
 	```
 
-5. Open http://localhost:5174 and sign in. The Django admin is at http://localhost:8000/admin/.
+5. Open http://localhost:5174 and sign in with that email address and password. To add accounts for your team, follow [Create the master admin and sign in](docs/admin.md).
 
 > [!TIP]
 > To open the mobile app in Expo Go on your phone, set `HOST_LAN_IP` in `.env` to your computer's LAN address, such as `192.168.1.20`. Then scan the QR code in the `mobile` service logs.

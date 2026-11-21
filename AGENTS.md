@@ -27,6 +27,7 @@ Nextsci Route Optimisation is an open-source route planning and optimisation pla
 - `.prototools` — pins node for proto, which moon puts first on task PATH
 - `scripts/check.sh` — installs, typechecks, and builds all four apps; run before declaring work done
 - `README.md` — project overview
+- `docs/admin.md` — how-to for creating the master admin (Django superuser), signing in to the dashboard, and adding accounts. Update it when account or sign-in behavior changes.
 - `AGENTS.md` — this file; the single source of truth for agent instructions
 - `CLAUDE.md` — imports this file for Claude Code
 - `.agents/` — detailed agent docs referenced below
