@@ -3,6 +3,9 @@
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 
+echo "== docs"
+"$root/scripts/check-docs.sh"
+
 echo "== backend"
 cd "$root/backend"
 [ -d .venv ] || python3 -m venv .venv
