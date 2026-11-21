@@ -1,31 +1,24 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import type { FormEvent } from 'react'
 import './app.css'
-import { clearSession, loadSession, resume, saveSession, signIn, type Session, type User } from './auth'
-
-type AuthState =
-  | { kind: 'checking' }
-  | { kind: 'signed-out' }
-  | { kind: 'signed-in'; session: Session; user: User }
-
-type FormState = { kind: 'idle' } | { kind: 'submitting' } | { kind: 'error'; message: string }
+import type { User } from './api/auth'
+import { useSession } from './hooks/useSession'
+import { useSignIn } from './hooks/useSignIn'
+import { useSignOut } from './hooks/useSignOut'
 
 function Logo({ size = 28 }: { size?: number }) {
   return <img src="/favicon.svg" width={size} height={size} alt="" />
 }
 
-function SignIn({ onSignedIn }: { onSignedIn: (session: Session) => void }) {
-  const [form, setForm] = useState<FormState>({ kind: 'idle' })
+function SignIn() {
+  const signIn = useSignIn()
 
-  async function submit(e: FormEvent<HTMLFormElement>) {
+  function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const data = new FormData(e.currentTarget)
-    setForm({ kind: 'submitting' })
-    const result = await signIn(String(data.get('email')), String(data.get('password')))
-    if (result.ok) onSignedIn(result.session)
-    else setForm({ kind: 'error', message: result.message })
+    signIn.mutate({ email: String(data.get('email')), password: String(data.get('password')) })
   }
 
-  const submitting = form.kind === 'submitting'
+  const submitting = signIn.isPending
 
   return (
     <main className="auth">
@@ -43,9 +36,9 @@ function SignIn({ onSignedIn }: { onSignedIn: (session: Session) => void }) {
             <span>Password</span>
             <input name="password" type="password" autoComplete="current-password" required disabled={submitting} />
           </label>
-          {form.kind === 'error' && (
+          {signIn.isError && (
             <p className="auth-error" role="alert">
-              {form.message}
+              {signIn.error.message}
             </p>
           )}
           <button className="btn btn-primary" type="submit" disabled={submitting}>
@@ -57,7 +50,8 @@ function SignIn({ onSignedIn }: { onSignedIn: (session: Session) => void }) {
   )
 }
 
-function Home({ user, onSignOut }: { user: User; onSignOut: () => void }) {
+function Home({ user }: { user: User }) {
+  const signOut = useSignOut()
   return (
     <div className="home">
       <header className="topbar">
@@ -66,7 +60,7 @@ function Home({ user, onSignOut }: { user: User; onSignOut: () => void }) {
           Nextsci
         </div>
         <span className="topbar-user">{user.email}</span>
-        <button className="btn btn-secondary" type="button" onClick={onSignOut}>
+        <button className="btn btn-secondary" type="button" onClick={signOut}>
           Sign out
         </button>
       </header>
@@ -79,43 +73,7 @@ function Home({ user, onSignOut }: { user: User; onSignOut: () => void }) {
 }
 
 export default function App() {
-  const [auth, setAuth] = useState<AuthState>(() => (loadSession() ? { kind: 'checking' } : { kind: 'signed-out' }))
-
-  function apply(resumed: Awaited<ReturnType<typeof resume>>) {
-    if (resumed) {
-      saveSession(resumed.session)
-      setAuth({ kind: 'signed-in', ...resumed })
-    } else {
-      clearSession()
-      setAuth({ kind: 'signed-out' })
-    }
-  }
-
-  async function enter(session: Session) {
-    apply(await resume(session))
-  }
-
-  useEffect(() => {
-    const stored = loadSession()
-    if (!stored) return
-    let live = true
-    resume(stored).then((resumed) => live && apply(resumed))
-    return () => {
-      live = false
-    }
-  }, [])
-
-  function signOut() {
-    clearSession()
-    setAuth({ kind: 'signed-out' })
-  }
-
-  switch (auth.kind) {
-    case 'checking':
-      return <main className="auth" aria-busy="true" />
-    case 'signed-out':
-      return <SignIn onSignedIn={enter} />
-    case 'signed-in':
-      return <Home user={auth.user} onSignOut={signOut} />
-  }
+  const session = useSession()
+  if (session.isPending) return <main className="auth" aria-busy="true" />
+  return session.data ? <Home user={session.data.user} /> : <SignIn />
 }
