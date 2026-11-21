@@ -9,7 +9,7 @@ Nextsci Route Optimisation is an open-source route planning and optimisation pla
 ## Repository layout
 
 - `backend/` — Django 6 API on PostgreSQL (`config/` is the project package). Python venv in `backend/.venv`, deps pinned in `requirements.txt`. Settings come from environment variables, loaded from the repo-root `.env` for local runs.
-- `frontend/` — Vite + React + TypeScript web app for dispatchers. npm.
+- `frontend/` — Vite + React + TypeScript web app for dispatchers, plus the public landing page in `src/landing/`. npm.
 - `mobile/` — Expo (SDK 58) + Expo Router React Native app for drivers. npm. Read `mobile/AGENTS.md` before touching it.
 - `compose.yaml` — runs Postgres, backend, frontend, and the Expo dev server together
 - `.env.example` — every config variable; copy to `.env` (gitignored)
@@ -25,10 +25,7 @@ Nextsci Route Optimisation is an open-source route planning and optimisation pla
 
 Detailed guidance lives in `.agents/`. Read the relevant file before working in that area:
 
-<!-- Add entries as files are created, e.g.
-- [Architecture](.agents/architecture.md) — system design and module boundaries
-- [Testing](.agents/testing.md) — how to write and run tests
--->
+- [DESIGNS.md](DESIGNS.md) — design system: colors, type, components, and landing page structure. Read it before any UI work in `frontend/` or `mobile/`.
 
 ## Commands
 
