@@ -40,11 +40,14 @@ function apply({ preference }: ThemeState) {
   else root.dataset.theme = preference
 }
 
-apply(store.getState())
-store.subscribe(apply)
-window.addEventListener('storage', (e) => {
-  if (e.key === STORAGE_KEY) void store.persist.rehydrate()
-})
+// The website is also rendered to HTML at build time, where there is no document to apply the theme to.
+if (typeof document !== 'undefined') {
+  apply(store.getState())
+  store.subscribe(apply)
+  window.addEventListener('storage', (e) => {
+    if (e.key === STORAGE_KEY) void store.persist.rehydrate()
+  })
+}
 
 export function useTheme() {
   return store()
