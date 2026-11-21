@@ -92,6 +92,14 @@ You need [Docker](https://docs.docker.com/get-docker/) with Compose. The stack s
 
 Run each app directly when you want faster reloads or a debugger. You need Python 3.12, Node.js 22, and a running PostgreSQL 17 server.
 
+With [moon](https://moonrepo.dev) installed, one command installs what each app needs and starts the API server, the dashboard, and the website:
+
+```bash
+moon run :dev
+```
+
+The API server runs on http://localhost:8000, the dashboard on http://localhost:5174, and the website on http://localhost:5173. To run one app at a time instead, follow the steps below.
+
 <details>
 <summary><strong>API server</strong> (<code>backend/</code>)</summary>
 

@@ -44,7 +44,7 @@ Detailed guidance lives in `.agents/`. Read the relevant file before working in 
 
 Verify everything: `./scripts/check.sh`
 
-Run backend, dashboard, and website together: `moon run :dev` (installs backend deps into `backend/.venv` first; `dashboard/node_modules` and `frontend/node_modules` must be set up)
+Run backend (:8000), dashboard (:5174), and website (:5173) together: `moon run :dev`. Each project's `install` task runs first: it creates `backend/.venv` and installs `requirements.txt`, and runs `npm ci` in `dashboard/` and `frontend/` when `package-lock.json` changed. Needs a running PostgreSQL configured in `.env`.
 
 Whole stack in Docker: `cp .env.example .env && docker compose up --build`. Ports: backend 8000, dashboard 5174, Metro 8081, Postgres `POSTGRES_HOST_PORT` (default 5432). Set `HOST_LAN_IP` in `.env` so Expo Go on a phone can reach Metro.
 
