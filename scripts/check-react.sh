@@ -14,7 +14,8 @@ for app in dashboard frontend; do
 $bad"
 
   # 2. Custom hooks are defined only in src/hooks/.
-  bad=$(src "^(export )?(default )?(async )?(function|const|let) use[A-Z]" | grep -v "^$app/src/hooks/")
+  #    src/components/ui/ is shadcn code copied into the repo, so its internal hooks may stay there.
+  bad=$(src "^(export )?(default )?(async )?(function|const|let) use[A-Z]" | grep -vE "^$app/src/(hooks|components/ui)/")
   [[ -z "$bad" ]] || err "custom hook defined outside $app/src/hooks/. Move it to $app/src/hooks/<hookName>.ts:
 $bad"
 
