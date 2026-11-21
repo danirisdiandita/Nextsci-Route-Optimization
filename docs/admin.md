@@ -6,7 +6,7 @@ Accounts use an email address and a password. There is no username.
 
 ## Before you start
 
-- The API server runs and has applied its migrations. With Docker Compose, the `backend` service does this when it starts. Without Docker, run `.venv/bin/python manage.py migrate` in `backend/`.
+- The API server runs and has applied its migrations. With Docker Compose, the `backend` service does this when it starts. Without Docker, run `moon run backend:migrate`, or `.venv/bin/python manage.py migrate` in `backend/`. `moon run backend:createsuperuser` applies them for you.
 - You know which way you run the stack: with Docker Compose, or directly on your computer. Each step below shows both.
 
 ## 1. Create the master admin
@@ -19,7 +19,15 @@ With Docker Compose:
 docker compose exec backend python manage.py createsuperuser
 ```
 
-Without Docker, from the repository root:
+Without Docker, with [moon](https://moonrepo.dev), from the repository root:
+
+```bash
+moon run backend:createsuperuser
+```
+
+This task installs the backend's packages and applies migrations first, so it also works on a fresh clone.
+
+Without moon:
 
 ```bash
 cd backend
@@ -31,7 +39,7 @@ To create the account without prompts, for example in a deploy script, set the e
 ```bash
 DJANGO_SUPERUSER_EMAIL=admin@example.com \
 DJANGO_SUPERUSER_PASSWORD='choose-a-long-password' \
-.venv/bin/python manage.py createsuperuser --noinput
+moon run backend:createsuperuser -- --noinput
 ```
 
 > [!WARNING]

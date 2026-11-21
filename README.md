@@ -98,7 +98,13 @@ With [moon](https://moonrepo.dev) installed, one command installs what each app 
 moon run :dev
 ```
 
-The API server runs on http://localhost:8000, the dashboard on http://localhost:5174, and the website on http://localhost:5173. To run one app at a time instead, follow the steps below.
+The API server runs on http://localhost:8000, the dashboard on http://localhost:5174, and the website on http://localhost:5173. Before you first sign in, create the master admin. The task applies migrations first, then asks for an email address and a password:
+
+```bash
+moon run backend:createsuperuser
+```
+
+To run one app at a time instead, follow the steps below.
 
 <details>
 <summary><strong>API server</strong> (<code>backend/</code>)</summary>

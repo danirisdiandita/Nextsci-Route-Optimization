@@ -12,3 +12,18 @@ tasks:
     deps:
       - '~:install'
     preset: 'server'
+  migrate:
+    command: '.venv/bin/python manage.py migrate'
+    deps:
+      - '~:install'
+    options:
+      cache: false
+      runInCI: false
+  createsuperuser:
+    command: '.venv/bin/python manage.py createsuperuser'
+    deps:
+      - '~:migrate'
+    options:
+      cache: false
+      interactive: true
+      runInCI: false
