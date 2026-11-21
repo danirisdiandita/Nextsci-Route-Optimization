@@ -13,6 +13,8 @@ Nextsci Route Optimisation is an open-source route planning and optimisation pla
 - `mobile/` — Expo (SDK 58) + Expo Router React Native app for drivers. npm. Read `mobile/AGENTS.md` before touching it.
 - `compose.yaml` — runs Postgres, backend, frontend, and the Expo dev server together
 - `.env.example` — every config variable; copy to `.env` (gitignored)
+- `.moon/workspace.yml`, `backend/moon.yml`, `frontend/moon.yml` — moon task runner config
+- `.prototools` — pins node for proto, which moon puts first on task PATH
 - `scripts/check.sh` — installs, typechecks, and builds all three apps; run before declaring work done
 - `README.md` — project overview
 - `AGENTS.md` — this file; the single source of truth for agent instructions
@@ -31,6 +33,8 @@ Detailed guidance lives in `.agents/`. Read the relevant file before working in 
 ## Commands
 
 Verify everything: `./scripts/check.sh`
+
+Run backend and frontend together: `moon run :dev` (needs `backend/.venv` and `frontend/node_modules` set up first)
 
 Whole stack in Docker: `cp .env.example .env && docker compose up --build`. Ports: backend 8000, frontend 5173, Metro 8081, Postgres `POSTGRES_HOST_PORT` (default 5432). Set `HOST_LAN_IP` in `.env` so Expo Go on a phone can reach Metro.
 
