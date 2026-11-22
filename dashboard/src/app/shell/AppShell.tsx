@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import type { User } from '@/api/auth'
-import { AppSidebar } from '@/components/AppSidebar'
-import { sections, type Section } from '@/components/sections'
+import { AppSidebar } from '@/app/shell/AppSidebar'
+import { sections, type Section } from '@/app/shell/sections'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import type { User } from '@/features/auth/api'
 
 const toggleShortcut = /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘B' : 'Ctrl B'
 

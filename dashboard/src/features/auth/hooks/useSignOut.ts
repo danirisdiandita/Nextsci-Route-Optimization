@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { signOut } from '../api/auth'
-import { queryKeys } from './queryKeys'
+import { signOut } from '@/features/auth/api'
+import { queryKeys } from '@/lib/queryKeys'
 
 export function useSignOut() {
   const queryClient = useQueryClient()

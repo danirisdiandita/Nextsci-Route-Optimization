@@ -17,7 +17,7 @@ These rules apply to `dashboard/` and `frontend/`. Both are Vite + React + TypeS
 
 ## Query keys
 
-Define every query key in `src/hooks/queryKeys.ts`, then use it from there. Never write a key array inline in a hook.
+Define every query key in `src/lib/queryKeys.ts`, then use it from there. Never write a key array inline in a hook.
 
 ```ts
 export const queryKeys = {
@@ -37,9 +37,9 @@ export const queryKeys = {
 
 `dashboard/` follows these rules. Read these files before you add a hook:
 
-- [`dashboard/src/api/auth.ts`](../dashboard/src/api/auth.ts) calls the server and returns domain types.
-- [`dashboard/src/hooks/useSession.ts`](../dashboard/src/hooks/useSession.ts) wraps the session in a query.
-- [`dashboard/src/hooks/useSignIn.ts`](../dashboard/src/hooks/useSignIn.ts) wraps sign-in in a mutation and updates the session in the cache.
-- [`dashboard/src/App.tsx`](../dashboard/src/App.tsx) uses only hooks.
+- [`dashboard/src/features/auth/api.ts`](../dashboard/src/features/auth/api.ts) calls the server and returns domain types.
+- [`dashboard/src/features/auth/hooks/useSession.ts`](../dashboard/src/features/auth/hooks/useSession.ts) wraps the session in a query.
+- [`dashboard/src/features/auth/hooks/useSignIn.ts`](../dashboard/src/features/auth/hooks/useSignIn.ts) wraps sign-in in a mutation and updates the session in the cache.
+- [`dashboard/src/app/App.tsx`](../dashboard/src/app/App.tsx) uses only hooks.
 
 `frontend/` has no server data and does not install TanStack Query. If it needs server data, add `@tanstack/react-query` and follow the same layout.

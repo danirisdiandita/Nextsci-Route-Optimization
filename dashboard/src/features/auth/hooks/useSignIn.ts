@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { signIn } from '../api/auth'
-import { queryKeys } from './queryKeys'
+import { signIn } from '@/features/auth/api'
+import { queryKeys } from '@/lib/queryKeys'
 
 export function useSignIn() {
   const queryClient = useQueryClient()

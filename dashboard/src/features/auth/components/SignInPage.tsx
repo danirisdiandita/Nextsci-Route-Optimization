@@ -1,14 +1,12 @@
 import type { FormEvent } from 'react'
-import { AppShell } from '@/components/AppShell'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { SignInBrand } from '@/components/SignInBrand'
 import { ThemeToggle } from '@/components/ThemeToggle'
-import { useSession } from '@/hooks/useSession'
-import { useSignIn } from '@/hooks/useSignIn'
+import { SignInBrand } from '@/features/auth/components/SignInBrand'
+import { useSignIn } from '@/features/auth/hooks/useSignIn'
 
-function SignIn() {
+export function SignInPage() {
   const signIn = useSignIn()
 
   function submit(e: FormEvent<HTMLFormElement>) {
@@ -57,10 +55,4 @@ function SignIn() {
       <SignInBrand />
     </main>
   )
-}
-
-export default function App() {
-  const session = useSession()
-  if (session.isPending) return <main className="min-h-screen" aria-busy="true" />
-  return session.data ? <AppShell user={session.data.user} /> : <SignIn />
 }

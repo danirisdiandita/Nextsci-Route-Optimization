@@ -1,6 +1,5 @@
 import { ChevronsUpDown, LogOut } from 'lucide-react'
-import type { User } from '@/api/auth'
-import { sections, type Section } from '@/components/sections'
+import { sections, type Section } from '@/app/shell/sections'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,7 +21,8 @@ import {
   SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { useSignOut } from '@/hooks/useSignOut'
+import type { User } from '@/features/auth/api'
+import { useSignOut } from '@/features/auth/hooks/useSignOut'
 
 // Text beside an icon fades while the sidebar narrows to its icon rail, so it never shows half clipped.
 const fade = 'transition-opacity duration-200 ease-out group-data-[collapsible=icon]:opacity-0'

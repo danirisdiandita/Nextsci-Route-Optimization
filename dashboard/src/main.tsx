@@ -3,7 +3,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './design.css'
 import './tailwind.css'
-import App from './App.tsx'
+import App from './app/App.tsx'
 
 const queryClient = new QueryClient()
 
