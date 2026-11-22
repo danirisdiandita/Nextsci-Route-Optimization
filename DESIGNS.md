@@ -135,7 +135,7 @@ Draw icons as 16px or 20px inline SVG, with a 1.5px stroke, round caps, `current
 
 ## Sign-in screen
 
-The dashboard opens on the sign-in screen at [`dashboard/src/App.tsx`](dashboard/src/App.tsx). It is a centered 360px column on `--bg` with a faint accent glow. The column holds the logo, a 24px heading, one line of `--text-3`, two inputs, and one full-width primary button. Inputs are 40px tall on `--surface-inset`. Their focus state is an `--accent` border with an `--accent-soft` ring. Errors appear above the button in a `--danger` tinted box with `role="alert"`. There is no sign-up link, because an administrator creates accounts.
+The dashboard opens on the sign-in screen at [`dashboard/src/App.tsx`](dashboard/src/App.tsx). From 1024px wide it splits in two. The form sits on the left on `--bg`. The brand panel ([`SignInBrand.tsx`](dashboard/src/components/SignInBrand.tsx)) sits on the right on `--bg-raised` behind a 1px `--border`. The panel repeats the website hero: the logo and "Nextsci", an eyebrow, the hero heading at `--font-h2` with the heading gradient, the lead, the route map in a 16px-radius frame, and the three value facts. Below 1024px the panel hides and the form centers over a faint accent glow. The form is a 360px column. It holds the logo, a 24px heading, one line of `--text-3`, two inputs, and one full-width primary button. Inputs are 40px tall on `--surface-inset`. Their focus state is an `--accent` border with an `--accent-soft` ring. Errors appear above the button in a `--danger` tinted box with `role="alert"`. There is no sign-up link, because an administrator creates accounts.
 
 ## Dashboard shell
 
