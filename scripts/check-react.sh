@@ -7,6 +7,22 @@ fail=0
 err() { echo "react: $*" >&2; fail=1; }
 src() { grep -rnE "$1" "$app/src" --include='*.ts' --include='*.tsx'; }
 
+# Every @/ or relative import in src/, as "<file>:<line>: imports <path>", with the path resolved to $app/src/...
+imports() {
+  grep -rnoE "(from|import) ['\"][^'\"]+['\"]|import\(['\"][^'\"]+['\"]\)" "$app/src" --include='*.ts' --include='*.tsx' |
+    python3 -c '
+import os, re, sys
+app = sys.argv[1]
+for line in sys.stdin:
+    f, n, rest = line.rstrip("\n").split(":", 2)
+    spec = re.search(r"[\x27\"]([^\x27\"]+)[\x27\"]", rest).group(1)
+    if spec.startswith("@/"):
+        print(f"{f}:{n}: imports {app}/src/{spec[2:]}")
+    elif spec.startswith("."):
+        print(f"{f}:{n}: imports {os.path.normpath(os.path.join(os.path.dirname(f), spec))}")
+' "$app"
+}
+
 # Hook folders: src/hooks/ for shared hooks, src/features/<name>/hooks/ for one feature's hooks.
 hooks='(hooks|features/[^/]+/hooks)/'
 
@@ -32,6 +48,20 @@ $bad"
   # 4. Network calls live in API modules. Hooks and components call those functions.
   bad=$(src "\bfetch\(" | grep -vE "^$app/src/(api/|features/[^/]+/(api\.ts:|api/))")
   [[ -z "$bad" ]] || err "fetch() outside an API module. Add a function in $app/src/features/<name>/api.ts, or in $app/src/api/ if every feature needs it, and call it from a hook:
+$bad"
+
+  # 5. A feature imports only its own files and shared code, never another feature.
+  #    src/app/ is where features meet, so it may import anything.
+  imp=$(imports)
+  bad=$(awk -F': imports ' -v p="$app/src/features/" 'index($1, p) == 1 && index($2, p) == 1 {
+    split(substr($1, length(p) + 1), from, "/"); split(substr($2, length(p) + 1), to, "/")
+    if (from[1] != to[1]) print }' <<<"$imp")
+  [[ -z "$bad" ]] || err "a feature imports another feature. Move the shared code to $app/src/components/, hooks/, or lib/, or connect the two features in $app/src/app/:
+$bad"
+
+  # 6. Shared code never imports from a feature or from the app shell.
+  bad=$(grep -E "^$app/src/(components|hooks|lib|api)/[^:]*:[0-9]+: imports $app/src/(features|app)(/|$)" <<<"$imp")
+  [[ -z "$bad" ]] || err "shared code in components/, hooks/, lib/, or api/ imports from features/ or app/. Pass the value in as a prop or argument, or move the file into the feature that uses it:
 $bad"
 done
 
