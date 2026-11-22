@@ -35,7 +35,7 @@ Read `AGENTS.md` first. Then read this file, and the doc for each area that your
 | Colors come from design tokens, never raw hex | `scripts/check-design.sh` | [`ui.md`](ui.md) |
 | Apps never restyle a shared component | `scripts/check-design.sh` | [`ui.md`](ui.md) |
 | Dashboard code never reads a shadcn theme variable, and `tailwind.css` has no `:root` block | `scripts/check-design.sh` | [`ui.md`](ui.md) |
-| Custom hooks live in `src/hooks/`, TanStack Query only inside hooks, `fetch` only in `src/api/` | `scripts/check-react.sh` | [`react.md`](react.md) |
+| Custom hooks and TanStack Query only in hook folders, `fetch` only in API modules, features never import each other, shared code never imports a feature | `scripts/check-react.sh` | [`react.md`](react.md) |
 | Inside a Django app, `api` → `services`/`selectors` → `models` | `lint-imports` in `backend/` | [`backend.md`](backend.md) |
 | Django apps import only apps below them in the domain order | `lint-imports` in `backend/` | [`backend.md`](backend.md) |
 | Every doc here is indexed, and every relative link resolves | `scripts/check-docs.sh` | this file |
