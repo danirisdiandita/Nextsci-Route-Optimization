@@ -26,8 +26,24 @@ An API module (`api.ts`, or files in `src/api/`) holds plain async functions. Ea
 
 1. Create `src/features/<name>/` with `api.ts`, `hooks/`, and `components/`.
 2. Add its query keys to `src/lib/queryKeys.ts`.
-3. Render its screen from `src/app/`, such as from the shell in `src/app/shell/`.
+3. Give its screen a route in `src/app/router.tsx`, as [Routing](#routing) describes.
 4. Run `./scripts/check-react.sh`.
+
+## Routing
+
+The dashboard uses [TanStack Router](https://tanstack.com/router) with a route tree written in code. There is no file-based routing and no route generator, so the folders above stay as they are.
+
+- **The route tree.** `src/app/router.tsx` defines every route: `/sign-in`, the screens inside the shell, and `/`, which redirects to `/routes`. A pathless route with the id `signed-in` renders the shell (`src/app/shell/AppShell.tsx`), and each screen renders in the shell's `<Outlet />`. A catch-all `$` route in the shell shows the not-found page.
+- **The guards.** Route guards live in `router.tsx`, in each route's `beforeLoad`, and nowhere else. They read the session query from the `queryClient` in router context. A signed-out visit to a shell route goes to `/sign-in?redirect=<path>`. A signed-in visit to `/sign-in` goes to the path in `redirect`, or to `/routes` when there is none. The sign-in route's `validateSearch` drops any `redirect` that would leave this origin. Components never check the session to decide what to render.
+- **The sidebar.** `src/app/shell/sections.ts` lists the sidebar sections in order. Each entry has a `path`, a label, an icon, and the empty-state text. The sidebar links to each `path`, so an entry without a route fails the typecheck. The active item, the header title, and the document title come from the matched route.
+- **After sign-in or sign-out.** `useSignIn` writes the session into the cache and calls `router.invalidate()`, which reruns the guards. `useSignOut` clears the session and navigates to `/sign-in`.
+
+To add a screen to the shell:
+
+1. Create its feature folder, as [Add a feature](#add-a-feature) describes.
+2. Add a route under `signedInRoute` in `router.tsx` with the screen as its `component`. If the section is already listed as planned, replace its `plannedSection('/<path>')` line.
+3. Add an entry to `sections` in `sections.ts` if the screen belongs in the sidebar.
+4. Link to it with `<Link to="/<path>">` from `@tanstack/react-router`. The link type checks the path against the route tree.
 
 ## Query keys
 
