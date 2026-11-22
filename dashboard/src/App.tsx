@@ -8,10 +8,6 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 import { useSession } from '@/hooks/useSession'
 import { useSignIn } from '@/hooks/useSignIn'
 
-function Logo({ size = 28 }: { size?: number }) {
-  return <img src="/favicon.svg" width={size} height={size} alt="" />
-}
-
 function SignIn() {
   const signIn = useSignIn()
 
@@ -32,7 +28,7 @@ function SignIn() {
           className="pointer-events-none absolute inset-x-0 -top-[40%] h-[900px] bg-[radial-gradient(ellipse_40%_35%_at_50%_40%,var(--accent-soft),transparent_70%)] lg:hidden"
         />
         <div className="relative flex w-full max-w-[360px] flex-col items-center text-center lg:items-start lg:text-left">
-          <Logo size={40} />
+          <img src="/favicon.svg" width={40} height={40} alt="" />
           <h1 className="mt-6 text-2xl font-semibold tracking-[-0.02em]">Sign in to Nextsci</h1>
           <p className="mt-2 text-sm text-muted-foreground">Use the account your administrator created for you.</p>
           <form className="mt-8 flex w-full flex-col gap-4 text-left" onSubmit={submit}>
