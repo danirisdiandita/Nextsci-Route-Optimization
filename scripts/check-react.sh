@@ -28,7 +28,8 @@ hooks='(hooks|features/[^/]+/hooks)/'
 
 for app in dashboard frontend; do
   # 1. TanStack Query is used only inside hooks. main.tsx may create the client and provider.
-  bad=$(src "from ['\"]@tanstack/react-query['\"]" | grep -vE "^$app/src/($hooks|main\.tsx:)")
+  #    app/router.tsx may read the client from router context: route guards run outside React, so they cannot call a hook.
+  bad=$(src "from ['\"]@tanstack/react-query['\"]" | grep -vE "^$app/src/($hooks|main\.tsx:|app/router\.tsx:)")
   [[ -z "$bad" ]] || err "TanStack Query imported outside a hook folder. Wrap the query or mutation in a hook in $app/src/hooks/ or $app/src/features/<name>/hooks/:
 $bad"
 

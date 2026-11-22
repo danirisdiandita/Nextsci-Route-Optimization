@@ -19,6 +19,7 @@ export function SignInPage() {
 
   return (
     <main className="relative grid min-h-screen lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+      <title>Sign in · Nextsci</title>
       <ThemeToggle className="absolute top-4 right-4 z-10" />
       <section className="relative grid place-items-center overflow-hidden px-4 py-16 sm:px-12">
         <div
