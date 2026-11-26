@@ -22,10 +22,32 @@ The dashboard sends `/api` requests to the API server. To use another address, s
 
 ## Branches and commits
 
-- Create a branch from `dev` and name it `feat/<short-name>` or `fix/<short-name>`.
+Every feature, bug fix, and chore is built in its own git worktree, then merged into `dev` as soon as it passes the checks. Separate worktrees let several tasks run in parallel without touching each other's files.
+
+1. **Start from the latest `dev`.** In the main checkout, run `git fetch origin` and then `git switch dev && git pull --ff-only origin dev`. Never branch from a stale `dev`.
+2. **Create a worktree for the task.** Name the branch `feat/<short-name>`, `fix/<short-name>`, or `chore/<short-name>`, and put the worktree next to the repository, not inside it:
+
+	```bash
+	git worktree add -b feat/<short-name> ../Nextsci-Route-Optimization-worktrees/feat-<short-name> origin/dev
+	```
+
+	A new worktree has no `.env`, `backend/.venv`, or `node_modules`. Copy `.env` from the main checkout, then run `moon run :install` inside the worktree. If two worktrees run dev servers at the same time, give each its own ports.
+3. **Work and commit in the worktree only.** Run one worktree per task. Never edit the same task in two worktrees, and never commit a task's work in the main checkout.
+4. **Merge into `dev` automatically when the checks pass.** Push the branch, open a pull request against `dev`, and merge it right away without waiting for review:
+
+	```bash
+	git push -u origin feat/<short-name>
+	gh pr create --base dev --fill
+	gh pr merge --merge --delete-branch
+	```
+
+5. **Resolve conflicts yourself.** If the branch conflicts with `dev`, run `git fetch origin && git merge origin/dev` in the worktree, fix every conflict so that both sides' intent survives, run `./scripts/check.sh` again, push, and merge. Never discard the other side's changes to make a conflict go away. If you cannot tell what one side meant, stop and ask.
+6. **Clean up and resync.** Remove the worktree with `git worktree remove ../Nextsci-Route-Optimization-worktrees/feat-<short-name>`, then pull `dev` again in the main checkout so it matches `origin/dev`.
+
+Commits:
+
 - Make small commits. Each commit builds and passes the checks by itself, so a reviewer can read the branch one commit at a time.
 - Write the subject as a command in sentence case, at most about 70 characters: `Add vehicle capacity to the fleet API`. Use the body to say why, not what the diff shows.
-- Open the pull request against `dev`.
 
 ## Verify the change
 

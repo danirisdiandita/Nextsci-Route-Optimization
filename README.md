@@ -49,7 +49,7 @@ flowchart LR
 | API server | [`backend/`](backend/) | Django 6.1, Python 3.12, psycopg 3 | http://localhost:8000 |
 | Dashboard for dispatchers | [`dashboard/`](dashboard/) | React 19, TypeScript, Vite 8 | http://localhost:5174 |
 | Driver mobile app | [`mobile/`](mobile/) | Expo SDK 58, React Native, Expo Router | Metro on port 8081 |
-| Database | [`compose.yaml`](compose.yaml) | PostgreSQL 17 | `localhost:5432` |
+| Database | [`compose.yaml`](compose.yaml) | PostgreSQL 17, pgvector | `localhost:5432` |
 
 ## Quick start
 
@@ -77,7 +77,7 @@ You need [Docker](https://docs.docker.com/get-docker/) with Compose. The stack s
 4. Create the master admin. The dashboard has no sign-up page, so accounts come from the server. The command asks for an email address and a password.
 
 	```bash
-	docker compose exec backend python manage.py createsuperuser
+	docker compose exec router-backend python manage.py createsuperuser
 	```
 
 5. Open http://localhost:5174 and sign in with that email address and password. To add accounts for your team, follow [Create the master admin and sign in](docs/admin.md).

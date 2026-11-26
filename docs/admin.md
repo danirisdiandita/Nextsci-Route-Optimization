@@ -16,7 +16,7 @@ Run `createsuperuser`. It asks for an email address and a password, then prints 
 With Docker Compose:
 
 ```bash
-docker compose exec backend python manage.py createsuperuser
+docker compose exec router-backend python manage.py createsuperuser
 ```
 
 Without Docker, with [moon](https://moonrepo.dev), from the repository root:
@@ -75,7 +75,7 @@ Leave **Staff status** and **Superuser status** cleared for dispatchers. Select 
 Run `changepassword` with the account's email address. It asks for the new password twice.
 
 ```bash
-docker compose exec backend python manage.py changepassword admin@example.com
+docker compose exec router-backend python manage.py changepassword admin@example.com
 ```
 
 Without Docker, run `.venv/bin/python manage.py changepassword admin@example.com` in `backend/`. The master admin can also set a new password on the user's page in the admin site.
