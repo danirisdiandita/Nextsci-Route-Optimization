@@ -6,3 +6,6 @@
 # moon
 .moon/cache/
 .moon/docker/
+
+# Postgres data from the router-db service (compose.yaml bind-mounts it here)
+pgdata/

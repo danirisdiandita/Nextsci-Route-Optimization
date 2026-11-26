@@ -29,7 +29,9 @@ Nextsci Route Optimisation is an open-source route planning and optimisation pla
 - `scripts/e2e-dashboard.sh` — end-to-end dashboard test in Chrome against a throwaway database: sign-in, URL routing (deep links, the sign-in redirect, back, reload, not-found), the sidebar, the theme switch, and sign-out (`COLOR_SCHEME=light|dark` sets the screenshots' theme); drives `scripts/e2e/signin.mjs`
 - `scripts/check-docs.sh` — fails when a doc in `.agents/` is not indexed or a relative markdown link breaks; `scripts/check.sh` runs it
 - `mobile/` — Expo (SDK 58) + Expo Router React Native app for drivers. npm. Read `mobile/AGENTS.md` before touching it.
-- `compose.yaml` — runs Postgres, backend, dashboard, and the Expo dev server together
+- `compose.yaml` — runs Postgres (the `pgvector/pgvector:pg17` image), backend, dashboard, and the Expo dev server together
+- `pgdata/` — the `router-db` data, bind-mounted by `compose.yaml`. Gitignored, and owned by the container's postgres user, so git and your user cannot read it. Delete it (with `sudo`) to start from an empty database.
+- `db/init/` — SQL that the `router-db` service runs once when `pgdata/` is empty; enables the `vector` extension in the app database and in `template1`
 - `.env.example` — every config variable; copy to `.env` (gitignored)
 - `.moon/workspace.yml`, `backend/moon.yml`, `frontend/moon.yml`, `dashboard/moon.yml` — moon task runner config
 - `.prototools` — pins node for proto, which moon puts first on task PATH
@@ -59,7 +61,7 @@ Run backend (:8000), dashboard (:5174), and website (:5173) together: `moon run 
 
 Apply migrations: `moon run backend:migrate`. Create the master admin: `moon run backend:createsuperuser` (installs and migrates first, then prompts for email and password; add `-- --noinput` with `DJANGO_SUPERUSER_EMAIL` and `DJANGO_SUPERUSER_PASSWORD` set to skip the prompts).
 
-Whole stack in Docker: `cp .env.example .env && docker compose up --build`. Ports: backend 8000, dashboard 5174, Metro 8081, Postgres `POSTGRES_HOST_PORT` (default 5432). Set `HOST_LAN_IP` in `.env` so Expo Go on a phone can reach Metro.
+Whole stack in Docker: `cp .env.example .env && docker compose up --build`. Ports: backend 8000, dashboard 5174, Metro 8081, Postgres `POSTGRES_HOST_PORT` (default 5432). Set `HOST_LAN_IP` in `.env` so Expo Go on a phone can reach Metro. Services and containers are named `router-db`, `router-backend`, `router-dashboard`, and `router-mobile`. Database only: `docker compose up -d router-db`.
 
 Backend (`cd backend`):
 - Setup: `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`, then fill the `POSTGRES_*` values in the repo-root `.env` for a running Postgres

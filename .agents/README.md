@@ -7,7 +7,7 @@ Read `AGENTS.md` first. Then read this file, and the doc for each area that your
 ## Rules for every change
 
 1. **Read the doc for the area before you edit it.** The table below names it.
-2. **Branch from `dev`, and open pull requests against `dev`.** `main` holds releases only.
+2. **Work in a git worktree branched from the latest `dev`, and merge into `dev` as soon as the checks pass.** Pull `dev` first, resolve any merge conflicts yourself, and run tasks in parallel in separate worktrees. `main` holds releases only. The steps are in [`workflow.md`](workflow.md#branches-and-commits).
 3. **Run `./scripts/check.sh` before you call the work done.** It installs, builds, and tests every app, and it runs every enforced rule below.
 4. **Verify on the real thing.** A passing build does not prove that a screen or an endpoint works. [`workflow.md`](workflow.md) lists the check for each kind of change.
 5. **Turn a rule into a check.** When you write the same instruction a second time, add it to a script in `scripts/` instead, and list it in the table of enforced rules. Prose rules drift. Checks do not.
