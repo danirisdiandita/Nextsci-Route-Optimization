@@ -29,9 +29,10 @@ Nextsci Route Optimisation is an open-source route planning and optimisation pla
 - `scripts/e2e-dashboard.sh` — end-to-end dashboard test in Chrome against a throwaway database: sign-in, URL routing (deep links, the sign-in redirect, back, reload, not-found), the sidebar, the theme switch, and sign-out (`COLOR_SCHEME=light|dark` sets the screenshots' theme); drives `scripts/e2e/signin.mjs`
 - `scripts/check-docs.sh` — fails when a doc in `.agents/` is not indexed or a relative markdown link breaks; `scripts/check.sh` runs it
 - `mobile/` — Expo (SDK 58) + Expo Router React Native app for drivers. npm. Read `mobile/AGENTS.md` before touching it.
-- `compose.yaml` — runs Postgres (the `pgvector/pgvector:pg17` image), backend, dashboard, and the Expo dev server together
-- `pgdata/` — the `router-db` data, bind-mounted by `compose.yaml`. Gitignored, and owned by the container's postgres user, so git and your user cannot read it. Delete it (with `sudo`) to start from an empty database.
-- `db/init/` — SQL that the `router-db` service runs once when `pgdata/` is empty; enables the `vector` extension in the app database and in `template1`
+- `compose.yaml` — runs Postgres (built from `db/Dockerfile`), backend, dashboard, and the Expo dev server together
+- `pgdata/` — the `router-db` data, bind-mounted by `compose.yaml`. Gitignored, and owned by the container's postgres user, so git and your user cannot read it. Delete it (with `sudo`) to start from an empty database. A `pgdata/` created before PostGIS was added keeps its data but lacks the extension: run `docker compose up -d --build router-db`, then `docker exec router-db psql -U <POSTGRES_USER> -d <POSTGRES_DB> -c 'CREATE EXTENSION IF NOT EXISTS postgis;'`, and the same with `-d template1`.
+- `db/Dockerfile` — the `router-db` image: `pgvector/pgvector:pg17` plus the PostGIS 3 package
+- `db/init/` — SQL that the `router-db` service runs once when `pgdata/` is empty; enables the `vector` and `postgis` extensions in the app database and in `template1`
 - `.env.example` — every config variable; copy to `.env` (gitignored)
 - `.moon/workspace.yml`, `backend/moon.yml`, `frontend/moon.yml`, `dashboard/moon.yml` — moon task runner config
 - `.prototools` — pins node for proto, which moon puts first on task PATH
