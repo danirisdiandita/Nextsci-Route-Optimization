@@ -8,7 +8,7 @@ Nextsci Route Optimisation is an open-source route planning and optimisation pla
 
 ## Repository layout
 
-- `backend/` — Django 6 API on PostgreSQL (`config/` is the project package). Python venv in `backend/.venv`, deps pinned in `requirements.txt`. Settings come from environment variables, loaded from the repo-root `.env` for local runs.
+- `backend/` — Django 6 API on PostgreSQL with PostGIS, through GeoDjango (`config/` is the project package; `config/tests/` checks that PostGIS and pgvector answer queries). Python venv in `backend/.venv`, deps pinned in `requirements.txt`. Settings come from environment variables, loaded from the repo-root `.env` for local runs.
   - `config/settings/` — `base.py` shared, `dev.py` (default, DEBUG on), `prod.py` (DEBUG off, requires `DJANGO_SECRET_KEY`, HTTPS-only). Select with `DJANGO_SETTINGS_MODULE`.
   - `apps/<app>/` — one Django app per domain in a fixed layout (`models.py`, `services.py`, `selectors.py`, `api/`, `tests/`). Create apps with `scripts/new-backend-app.sh <name>`. Layout, import rules, and the planned domain map: `.agents/backend.md`.
   - `.importlinter` — import contracts that `lint-imports` checks; `requirements-dev.txt` adds dev tools on top of `requirements.txt`.
@@ -65,7 +65,7 @@ Apply migrations: `moon run backend:migrate`. Create the master admin: `moon run
 Whole stack in Docker: `cp .env.example .env && docker compose up --build`. Ports: backend 8000, dashboard 5174, Metro 8081, Postgres `POSTGRES_HOST_PORT` (default 5432). Set `HOST_LAN_IP` in `.env` so Expo Go on a phone can reach Metro. Services and containers are named `router-db`, `router-backend`, `router-dashboard`, and `router-mobile`. Database only: `docker compose up -d router-db`.
 
 Backend (`cd backend`):
-- Setup: `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`, then fill the `POSTGRES_*` values in the repo-root `.env` for a running Postgres
+- Setup: install GDAL (`sudo apt install gdal-bin`, or `brew install gdal`), then `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`, then fill the `POSTGRES_*` values in the repo-root `.env` for a running Postgres with PostGIS and pgvector
 - Migrate: `.venv/bin/python manage.py migrate`
 - Run: `.venv/bin/python manage.py runserver`
 - Check: `.venv/bin/python manage.py check`

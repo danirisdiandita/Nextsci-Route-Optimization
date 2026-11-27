@@ -90,7 +90,7 @@ You need [Docker](https://docs.docker.com/get-docker/) with Compose. The stack s
 
 ## Develop without Docker
 
-Run each app directly when you want faster reloads or a debugger. You need Python 3.12, Node.js 22, and a running PostgreSQL 17 server.
+Run each app directly when you want faster reloads or a debugger. You need Python 3.12, Node.js 22, a running PostgreSQL 17 server with the PostGIS and pgvector extensions, and the GDAL library (`sudo apt install gdal-bin` on Debian or Ubuntu, `brew install gdal` on macOS).
 
 With [moon](https://moonrepo.dev) installed, one command installs what each app needs and starts the API server, the dashboard, and the website:
 
