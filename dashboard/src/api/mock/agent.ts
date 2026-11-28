@@ -39,13 +39,15 @@ import {
   type LateStop,
   type TodayStage,
 } from './agentToday.ts'
-import { mutate } from './db.ts'
+import { mutate, query, type Db } from './db.ts'
 import { createDepot } from './depot.ts'
 import { createDrivers, updateDriver } from './driver.ts'
 import { startDay } from './liveDay.ts'
 import { deleteOrder, fixOrderLocation, listOrders } from './order.ts'
 import { commitOrderImport, createOrderImport, type ImportResult } from './orderImport.ts'
 import { applyChange, createPlan, previewChange, proposeChange, rejectChange, sendPlan, type SendResult } from './plan.ts'
+import { impactOf } from './planner.ts'
+import { editPlan } from './planStore.ts'
 import { createVehicle } from './vehicle.ts'
 import { getSampleOrdersFile } from './workspace.ts'
 
@@ -149,7 +151,8 @@ export type Effect =
   | { kind: 'create_plan'; settings: PlanSettings }
   | { kind: 'propose'; planId: PlanId; summary: string; diff: PlanChangeOp[]; askScope: boolean }
   | { kind: 'apply'; changeId: PlanChangeId }
-  | { kind: 'reject'; changeId: PlanChangeId }
+  /** `quiet`: the agent replaces the change in the same turn, so discarding it is not news. */
+  | { kind: 'reject'; changeId: PlanChangeId; quiet?: boolean }
   | { kind: 'send'; planId: PlanId }
   | { kind: 'start_day'; planId: PlanId }
 
@@ -354,7 +357,7 @@ const handlers: { [K in IntentKind]: Handler<K> } = {
       return {
         said: [],
         effects: [
-          { kind: 'reject', changeId: proposal.id },
+          { kind: 'reject', changeId: proposal.id, quiet: true },
           ...moveStop({ ...s, changes: [] }, op.orderId, driverId, false).effects,
         ],
       }
@@ -362,7 +365,7 @@ const handlers: { [K in IntentKind]: Handler<K> } = {
     if (op.kind === 'pin_stop') return say(chat('That change already keeps it with them.', ['Apply change', 'Discard']))
     return {
       said: [],
-      effects: [{ kind: 'reject', changeId: proposal.id }, ...moveStop({ ...s, changes: [] }, op.orderId, driverId, true).effects],
+      effects: [{ kind: 'reject', changeId: proposal.id, quiet: true }, ...moveStop({ ...s, changes: [] }, op.orderId, driverId, true).effects],
     }
   },
   apply: (_intent, _s, stage) => {
@@ -550,7 +553,7 @@ export type Outcome =
   /** `leftOut`: stops the change would leave unassigned. */
   | { kind: 'proposed'; change: PlanChange; askScope: boolean; leftOut: { orderId: OrderId; reason: UnassignedReason }[] }
   | { kind: 'applied'; change: PlanChange; view: PlanView }
-  | { kind: 'rejected'; change: PlanChange }
+  | { kind: 'rejected'; change: PlanChange; quiet: boolean }
   | { kind: 'sent'; result: SendResult }
   | { kind: 'started'; view: PlanView }
   | { kind: 'failed'; doing: string; message: string }
@@ -623,7 +626,7 @@ export async function perform(effect: Effect, s: AgentSnapshot): Promise<Outcome
       return { kind: 'applied', change: s.changes.find((c) => c.id === effect.changeId)!, view }
     }
     case 'reject':
-      return { kind: 'rejected', change: await rejectChange(effect.changeId) }
+      return { kind: 'rejected', change: await rejectChange(effect.changeId), quiet: effect.quiet ?? false }
     case 'send':
       return { kind: 'sent', result: await sendPlan(effect.planId, { linkChannel: 'whatsapp', notifyCustomers: false, notifyOnChange: true }) }
     case 'start_day':
@@ -638,7 +641,8 @@ function impactSentence(s: AgentSnapshot, change: PlanChange, leftOut: { orderId
   const parts = change.impact.drivers
     .filter((d) => d.end !== null && d.minutesDelta !== 0)
     .map((d) => `${nameOf(s, d.driverId)} ${formatMinutesDelta(d.minutesDelta)}`)
-  const windows = change.impact.windowsHeld ? 'Every window still holds.' : `${plural(change.impact.lateStops, 'stop')} would be late.`
+  // A window can also break by a stop dropping out, which the left-out sentence names.
+  const windows = change.impact.windowsHeld ? 'Every window still holds.' : change.impact.lateStops ? `${plural(change.impact.lateStops, 'stop')} would be late.` : ''
   const out = leftOut.map((u) => `${customerOf(s, u.orderId)} would be left out: it ${unassignedReasons[u.reason]}.`)
   return [parts.length ? `${parts.join(', ')}.` : '', windows, ...out].filter(Boolean).join(' ')
 }
@@ -711,7 +715,7 @@ export function report(outcome: Outcome, s: AgentSnapshot): Said[] {
       return [chat(`Applied: ${outcome.change.summary}.${routes}`, outcome.view.plan.status === 'draft' ? ['Send to drivers'] : [])]
     }
     case 'rejected':
-      return [chat('Discarded. The plan stays as it was.')]
+      return outcome.quiet ? [] : [chat('Discarded. The plan stays as it was.')]
     case 'sent': {
       const { dispatches, unreachable } = outcome.result
       const app = dispatches.filter((d) => d.channel === 'app').length
@@ -815,6 +819,31 @@ export async function askAgent({ text, files = [] }: { text: string; files?: Age
 }
 
 /**
+ * Who should take each late stop: for every stop in turn, the driver whose route takes it with no stop left
+ * out and no new late stop, adding the fewest minutes. A stop no one can take stays where it is. Runs in one
+ * read of the database, so the search costs one call however many drivers it tries.
+ */
+export function reassignment(db: Db, planId: PlanId, fromDriverId: DriverId, late: LateStop[], minute: Minute): { orderId: OrderId; toDriverId: DriverId }[] {
+  const plan = db.plan.find((p) => p.id === planId)
+  if (!plan) return []
+  const delayed = new Set(db.incident.filter((i) => i.planId === planId && i.at <= minute).map((i) => i.driverId))
+  const helpers = db.route.filter((r) => r.planId === planId && !delayed.has(r.driverId)).map((r) => r.driverId)
+  const moves: { orderId: OrderId; toDriverId: DriverId }[] = []
+  for (const { orderId } of late) {
+    let best: { toDriverId: DriverId; minutes: number } | null = null
+    for (const toDriverId of helpers) {
+      const diff: PlanChangeOp[] = [...moves, { orderId, toDriverId }].map((m) => ({ kind: 'move_stop', orderId: m.orderId, fromDriverId, toDriverId: m.toDriverId }))
+      const { before, after } = editPlan(db, plan, diff)
+      const impact = impactOf(before, after)
+      if (impact.unassignedDelta > 0 || !impact.windowsHeld) continue
+      if (!best || impact.minutesDelta < best.minutes) best = { toDriverId, minutes: impact.minutesDelta }
+    }
+    if (best) moves.push({ orderId, toDriverId: best.toDriverId })
+  }
+  return moves
+}
+
+/**
  * Looks at the live day at `minute` and reports each incident that has started, once. When the delay makes
  * stops miss their window, it proposes giving them to the driver with the most time to spare.
  */
@@ -824,10 +853,10 @@ export async function watchDay(minute: Minute): Promise<void> {
   if (view?.plan.status !== 'live') return
   for (const incident of s.incidents.filter((i) => i.at <= minute)) {
     const id = incidentMessageId(incident)
+    if (s.messages.some((m) => m.id === id)) continue
     const route = view.routes.find((r) => r.driverId === incident.driverId)
-    if (!route || s.messages.some((m) => m.id === id)) continue
     const name = nameOf(s, incident.driverId)
-    const late = lateStops(route, s.incidents, s.orders, Math.max(minute, incident.at))
+    const late = route ? lateStops(route, s.incidents, s.orders, Math.max(minute, incident.at)) : []
     // Claim the incident first, in one write, so two tabs watching the same day never report it twice.
     const claimed = await mutate((db) => {
       if (db.agent_message.some((m) => m.id === id)) return false
@@ -847,31 +876,44 @@ export async function watchDay(minute: Minute): Promise<void> {
       return true
     })
     if (!claimed || !late.length) continue
-    const helper = view.routes
-      .filter((r) => r.driverId !== incident.driverId && !s.incidents.some((i) => i.driverId === r.driverId && i.at <= minute))
-      .sort((a, b) => a.end - b.end)[0]
-    if (!helper) continue
-    const diff: PlanChangeOp[] = late.map((l) => ({ kind: 'move_stop', orderId: l.orderId, fromDriverId: incident.driverId, toDriverId: helper.driverId }))
+    const moves = await query((db) => reassignment(db, view.plan.id, incident.driverId, late, minute))
+    const names = late.map((l) => `${customerOf(s, l.orderId)} (${formatWindow(s.orders.find((o) => o.id === l.orderId)!.window!)})`)
+    const head = [
+      `**${name} is ${incident.delayMinutes} min behind**`,
+      `Held up on ${incident.place}. At this pace, ${plural(late.length, 'order')} ${late.length === 1 ? 'misses its' : 'miss their'} window: ${listNames(names)}.`,
+    ]
+    if (!moves.length) {
+      await createAgentMessage({
+        role: 'agent',
+        kind: 'chat',
+        text: [...head, "No other driver can take them without dropping a stop of their own. I can text the customers that they'll be late."].join('\n'),
+        suggestions: ['Text the customers'],
+        at: incident.at,
+      })
+      continue
+    }
+    const helpers = [...new Set(moves.map((m) => m.toDriverId))]
+    const diff: PlanChangeOp[] = moves.map((m) => ({ kind: 'move_stop', orderId: m.orderId, fromDriverId: incident.driverId, toDriverId: m.toDriverId }))
     let change: PlanChange
     try {
       change = await proposeChange(view.plan.id, {
         authorKind: 'agent',
-        summary: `Give ${plural(late.length, 'stop')} from ${name} to ${nameOf(s, helper.driverId)}`,
+        summary: `Give ${plural(moves.length, 'stop')} from ${name} to ${listNames(helpers.map((h) => nameOf(s, h)))}`,
         diff,
       })
     } catch {
       continue
     }
-    const names = late.map((l) => `${customerOf(s, l.orderId)} (${formatWindow(s.orders.find((o) => o.id === l.orderId)!.window!)})`)
+    const given = helpers.map((h) => `${listNames(moves.filter((m) => m.toDriverId === h).map((m) => customerOf(s, m.orderId)))} to ${nameOf(s, h)}`)
+    const kept = late.length - moves.length
     await createAgentMessage({
       role: 'agent',
       kind: 'chat',
       text: [
-        `**${name} is ${incident.delayMinutes} min behind**`,
-        `Held up on ${incident.place}. At this pace, ${plural(late.length, 'order')} ${late.length === 1 ? 'misses its' : 'miss their'} window: ${listNames(names)}.`,
-        `Proposal: give ${late.length === 1 ? 'it' : 'them'} to ${nameOf(s, helper.driverId)}, who is back at the depot by ${formatMinute(helper.end)}. ${impactSentence(s, change)}`,
+        ...head,
+        `Proposal: give ${listNames(given)}. ${impactSentence(s, change)}${kept ? ` ${plural(kept, 'stop')} fit no one else's day, so they stay with ${name}.` : ''}`,
       ].join('\n'),
-      suggestions: [`Reassign ${plural(late.length, 'stop')}`, 'Text the customers', 'Leave it'],
+      suggestions: [`Reassign ${plural(moves.length, 'stop')}`, 'Text the customers', 'Leave it'],
       proposalId: change.id,
       at: incident.at,
     })

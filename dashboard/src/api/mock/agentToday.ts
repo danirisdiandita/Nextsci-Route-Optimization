@@ -246,6 +246,9 @@ export function lateStops(route: Route, incidents: Incident[], orders: Order[], 
 /** The id of the log line about an incident, so the agent reports each incident once however often it looks. */
 export const incidentMessageId = (incident: Incident) => `agent_message_late_${incident.id.slice('incident_'.length)}` as AgentMessageId
 
+/** True for the log line the agent posts about an incident on the live day. */
+export const isIncidentMessage = (message: Pick<AgentMessage, 'id'>) => message.id.startsWith('agent_message_late_')
+
 // ---------------------------------------------------------------------------------------------------------
 // The stage of the day, which the Today screen shows
 

@@ -349,6 +349,7 @@ test('a late driver whose stops miss their window gets a reassignment the dispat
   assert.match(card.suggestions[0], /^Reassign \d+ stops?$/)
   const live = await stage()
   assert.ok(live.kind === 'live' && live.proposal?.id === card.proposalId)
+  assert.ok(live.proposal.impact.windowsHeld && live.proposal.impact.unassignedDelta <= 0, 'the proposal keeps every stop and window')
   const moved = live.proposal.diff.map((op) => op.kind === 'move_stop' && op.orderId)
 
   await askAgent({ text: 'Text the customers' })
