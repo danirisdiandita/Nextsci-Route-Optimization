@@ -48,6 +48,13 @@ const editable = (plan: Plan) => {
   if (plan.status === 'live') throw new Error('The day is running. Change routes from the live view.')
 }
 
+/** Edits that move single stops. A live plan takes only these, since the rest solve every route again. */
+const stopOps = new Set<PlanChangeOp['kind']>(['move_stop', 'assign_stop', 'unassign_stop', 'pin_stop'])
+
+const changeable = (plan: Plan, diff: PlanChangeOp[]) => {
+  if (plan.status === 'live' && diff.some((op) => !stopOps.has(op.kind))) throw new Error('The day is running. Only stops can move between drivers now.')
+}
+
 function checkSettings(db: Db, settings: PlanSettings) {
   must(db.depot, settings.depotId, 'depot')
   requireCount(settings.serviceMinutes, 'Service time per stop', 0)
@@ -117,7 +124,7 @@ export const listPlanChanges = (planId: PlanId) => query((db) => db.plan_change.
 export const proposeChange = (planId: PlanId, input: Pick<PlanChange, 'authorKind' | 'summary' | 'diff'>) =>
   mutate((db) => {
     const plan = must(db.plan, planId, 'plan')
-    editable(plan)
+    changeable(plan, input.diff)
     const { before, after } = editPlan(db, plan, input.diff)
     const change: PlanChange = {
       id: newId('plan_change'),
@@ -138,7 +145,7 @@ export const applyChange = (changeId: PlanChangeId) =>
     const change = must(db.plan_change, changeId, 'change')
     if (change.status !== 'proposed') throw new Error('This change was already applied or discarded.')
     const plan = must(db.plan, change.planId, 'plan')
-    editable(plan)
+    changeable(plan, change.diff)
     const { rules, before, after } = editPlan(db, plan, change.diff)
     change.before = { version: plan.version, rules: rulesOf(plan), ...planRows(db, plan.id) }
     change.impact = impactOf(before, after)
@@ -164,7 +171,6 @@ export const undoChange = (changeId: PlanChangeId) =>
   mutate((db) => {
     const change = must(db.plan_change, changeId, 'change')
     const plan = must(db.plan, change.planId, 'plan')
-    editable(plan)
     const latest = db.plan_change
       .filter((c) => c.planId === plan.id && c.status === 'applied')
       .reduce<PlanChange | null>((last, c) => (!last || c.createdAt >= last.createdAt ? c : last), null)

@@ -2,8 +2,9 @@
 # End-to-end test of dashboard sign-in against the real Django backend, in Chrome.
 #   scripts/e2e-dashboard.sh [screenshot-dir]
 # Set COLOR_SCHEME=light or COLOR_SCHEME=dark to take the screenshots in that theme.
+# Set API_PORT, DASH_PORT, or CDP_PORT to run beside another copy of this script.
 # Creates a throwaway database and user, starts Django and the dashboard on spare ports,
-# runs scripts/e2e/signin.mjs and scripts/e2e/tour.mjs, and removes everything it created, even when a step fails.
+# runs scripts/e2e/signin.mjs, scripts/e2e/tour.mjs, and scripts/e2e/routes.mjs, and removes everything it created, even when a step fails.
 # Needs: PostgreSQL reachable with the credentials in .env, backend/.venv, dashboard/node_modules, Chrome.
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -14,7 +15,7 @@ mkdir -p "$out"
 export POSTGRES_DB="nextsci_e2e_$$"
 email="e2e-dispatcher@example.com"
 password="e2e-$$-route-test"
-api_port=8777 dash_port=5199 cdp_port=9333
+api_port="${API_PORT:-8777}" dash_port="${DASH_PORT:-5199}" cdp_port="${CDP_PORT:-9333}"
 chrome="${CHROME:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
 profile="$(mktemp -d)"
 pids=()
@@ -50,15 +51,22 @@ cd "$root/dashboard"
 API_PROXY_TARGET="http://localhost:$api_port" node_modules/.bin/vite --port "$dash_port" --strictPort >"$out/dashboard.log" 2>&1 &
 pids+=($!)
 
-"$chrome" --headless=new --disable-gpu --remote-debugging-port="$cdp_port" --user-data-dir="$profile" about:blank >/dev/null 2>&1 &
-pids+=($!)
+# Each test script closes the browser when it ends, so the next one starts a fresh one on the same profile.
+start_chrome() {
+  "$chrome" --headless=new --disable-gpu --remote-debugging-port="$cdp_port" --user-data-dir="$profile" about:blank >/dev/null 2>&1 &
+  pids+=($!)
+  wait_for "http://localhost:$cdp_port/json/version"
+}
 
 wait_for "http://localhost:$api_port/admin/login/"
 wait_for "http://localhost:$dash_port/"
-wait_for "http://localhost:$cdp_port/json/version"
+start_chrome
 
 echo "== sign-in flow"
 node "$root/scripts/e2e/signin.mjs" "$cdp_port" "http://localhost:$dash_port/" "$out" "$email" "$password"
 echo "== tour of every screen on the mock data"
 node "$root/scripts/e2e/tour.mjs" "$cdp_port" "http://localhost:$dash_port/" "$out" "$email" "$password"
+echo "== routes: plan, edit, send, and run the day"
+start_chrome
+node "$root/scripts/e2e/routes.mjs" "$cdp_port" "http://localhost:$dash_port/" "$out" "$email" "$password"
 echo "screenshots and logs: $out"

@@ -24,6 +24,7 @@ import type {
   Pin,
   Route,
   RouteStop,
+  StopPosition,
   TimeWindow,
   Trip,
   UnassignedOrder,
@@ -38,7 +39,7 @@ import {
   unassignedReasons,
   vehicleKinds,
 } from '../types.ts'
-import { arrayOf, boolean, id, literal, nullable, number, recordOf, shape, string, union, type Guard } from './guard.ts'
+import { arrayOf, boolean, id, literal, nullable, number, optional, recordOf, shape, string, union, type Guard } from './guard.ts'
 
 // The mock server's database: every table in one versioned localStorage key. Each call reads the whole
 // database, works on it, and writes it back in one synchronous step after a short delay, so loading states
@@ -184,7 +185,13 @@ const route = shape<Route>({
 const unassignedOrder = shape<UnassignedOrder>({ planId: id('plan'), orderId: id('order'), reason: literal(...unassignedReasons) })
 type Op<K extends PlanChangeOp['kind']> = Extract<PlanChangeOp, { kind: K }>
 const planChangeOp = union<PlanChangeOp>(
-  shape<Op<'move_stop'>>({ kind: literal('move_stop'), orderId: id('order'), fromDriverId: id('driver'), toDriverId: id('driver') }),
+  shape<Op<'move_stop'>>({
+    kind: literal('move_stop'),
+    orderId: id('order'),
+    fromDriverId: id('driver'),
+    toDriverId: id('driver'),
+    at: optional(shape<StopPosition>({ trip: number, index: number })),
+  }),
   shape<Op<'assign_stop'>>({ kind: literal('assign_stop'), orderId: id('order'), toDriverId: id('driver') }),
   shape<Op<'unassign_stop'>>({ kind: literal('unassign_stop'), orderId: id('order') }),
   shape<Op<'remove_driver'>>({ kind: literal('remove_driver'), driverId: id('driver') }),
