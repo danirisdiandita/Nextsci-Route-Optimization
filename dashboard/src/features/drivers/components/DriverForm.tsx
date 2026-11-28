@@ -115,7 +115,16 @@ type Props = {
 export function DriverForm({ heading, driver, vehicles, defaults, submitLabel, pending, error, onSubmit, secondary }: Props) {
   const [draft, setDraft] = useState(() => draftOf(driver, defaults))
   const [errors, setErrors] = useState<Errors>({})
-  const set = (patch: Partial<Draft>) => setDraft((d) => ({ ...d, ...patch }))
+  const fieldOf: Partial<Record<keyof Draft, keyof Errors>> = {
+    name: 'name', shiftStart: 'shift', shiftEnd: 'shift', hasBreak: 'break', breakMinutes: 'break', breakStart: 'break', breakEnd: 'break',
+    vehicle: 'vehicle', newCapacity: 'vehicle', start: 'home', home: 'home', homePicked: 'home',
+  }
+  /** Changes the draft and clears the errors of the fields the dispatcher is fixing. */
+  const set = (patch: Partial<Draft>) => {
+    setDraft((d) => ({ ...d, ...patch }))
+    const fixed = new Set(Object.keys(patch).map((k) => fieldOf[k as keyof Draft]))
+    setErrors((e) => Object.fromEntries(Object.entries(e).filter(([k]) => !fixed.has(k as keyof Errors))))
+  }
   const picked = draft.vehicle !== 'none' && draft.vehicle !== 'new' ? vehicles.find((v) => v.id === draft.vehicle) : undefined
   const vehicleItems: Record<string, string> = {
     new: 'New vehicle',

@@ -59,7 +59,11 @@ type Props = {
 export function DepotForm({ heading, depot, submitLabel, pending, error, onSubmit, secondary }: Props) {
   const [draft, setDraft] = useState(() => (depot ? draftOf(depot) : emptyDraft))
   const [errors, setErrors] = useState<Errors>({})
-  const set = (patch: Partial<Draft>) => setDraft((d) => ({ ...d, ...patch }))
+  /** Changes the draft and clears the error of the field the dispatcher is fixing. */
+  const set = (field: Field, patch: Partial<Draft>) => {
+    setDraft((d) => ({ ...d, ...patch }))
+    setErrors((e) => ({ ...e, [field]: undefined }))
+  }
   const pin = pinOf(draft)
   const submit = (e: FormEvent) => {
     e.preventDefault()
@@ -73,7 +77,7 @@ export function DepotForm({ heading, depot, submitLabel, pending, error, onSubmi
       <form noValidate onSubmit={submit} className="flex min-w-0 flex-col gap-5 p-6 lg:border-r">
         <h2 className="text-xl font-semibold tracking-[-0.012em]">{heading}</h2>
         <FormField label="Name" htmlFor="depot-name" error={errors.name}>
-          <Input id="depot-name" value={draft.name} aria-invalid={!!errors.name || undefined} placeholder="Your kitchen or warehouse" onChange={(e) => set({ name: e.target.value })} />
+          <Input id="depot-name" value={draft.name} aria-invalid={!!errors.name || undefined} placeholder="Your kitchen or warehouse" onChange={(e) => set('name', { name: e.target.value })} />
         </FormField>
         <FormField
           label="Address"
@@ -86,20 +90,20 @@ export function DepotForm({ heading, depot, submitLabel, pending, error, onSubmi
             value={draft.address}
             invalid={!!errors.address}
             placeholder="Jl. Layur, Yogyakarta"
-            onChange={(address) => set({ address })}
-            onPick={(c) => set({ address: c.address, picked: c })}
+            onChange={(address) => set('address', { address })}
+            onPick={(c) => set('address', { address: c.address, picked: c })}
           />
         </FormField>
         <FormField label="Opening hours" htmlFor="depot-open" error={errors.hours} hint="Routes leave after opening and come back before closing.">
           <div className="flex items-center gap-3">
-            <Input id="depot-open" type="time" aria-label="Opens at" className="w-32" value={draft.open} aria-invalid={!!errors.hours || undefined} onChange={(e) => set({ open: e.target.value })} />
+            <Input id="depot-open" type="time" aria-label="Opens at" className="w-32" value={draft.open} aria-invalid={!!errors.hours || undefined} onChange={(e) => set('hours', { open: e.target.value })} />
             <span className="text-sm text-muted-foreground">to</span>
-            <Input id="depot-close" type="time" aria-label="Closes at" className="w-32" value={draft.close} aria-invalid={!!errors.hours || undefined} onChange={(e) => set({ close: e.target.value })} />
+            <Input id="depot-close" type="time" aria-label="Closes at" className="w-32" value={draft.close} aria-invalid={!!errors.hours || undefined} onChange={(e) => set('hours', { close: e.target.value })} />
           </div>
         </FormField>
         <FormField label="Loading time per route" htmlFor="depot-load" error={errors.loadMinutes} hint="Minutes to load a vehicle before each trip.">
           <div className="flex items-center gap-2">
-            <Input id="depot-load" type="number" min={0} step={1} inputMode="numeric" className="w-24" value={draft.loadMinutes} aria-invalid={!!errors.loadMinutes || undefined} onChange={(e) => set({ loadMinutes: e.target.value })} />
+            <Input id="depot-load" type="number" min={0} step={1} inputMode="numeric" className="w-24" value={draft.loadMinutes} aria-invalid={!!errors.loadMinutes || undefined} onChange={(e) => set('loadMinutes', { loadMinutes: e.target.value })} />
             <span className="text-sm text-muted-foreground">min</span>
           </div>
         </FormField>
