@@ -86,6 +86,12 @@ Each entry is a mistake that this project already made. It gives the symptom you
 - **Cause.** The test slept a fixed time after the wrong-password submit. When the server answered late, the form was still disabled. Disabled inputs drop out of `FormData`, so the next submit sent `null` for the email and password.
 - **Do.** Wait for what the user would see, such as the error box or the sidebar, with the `until` helper in `scripts/e2e/signin.mjs`. Do not add fixed sleeps after a server call.
 
+### A browser test that picks its targets by position breaks when the sample plan changes
+
+- **Symptom.** `scripts/e2e/routes.mjs` fails "the moved stop sits in its new row as an outline" after a planner change, although dragging works by hand. The change bar says "1 stop no longer fits".
+- **Cause.** The test dropped a stop on the middle of the first route's row. Once the planner packed that route closer to the end of the shift, no place after the drop had room, so the planner left the stop unassigned, as it should.
+- **Do.** Choose drag targets and expected rows from the plan data, such as the route that finishes earliest, not from row order or position. Assert what the dispatcher reads, such as the absence of "no longer fits", so the failure names its cause.
+
 ### Chrome keeps writing to its profile after it exits
 
 - **Symptom.** Deleting the temporary Chrome profile fails with `ENOTEMPTY`.
