@@ -42,6 +42,12 @@ Each entry is a mistake that this project already made. It gives the symptom you
 - **Cause.** shadcn writes a `:root` block with its own `--accent`, `--border`, and `--radius`, which share names with our tokens and have different meanings.
 - **Do.** Keep only the `@theme inline` mapping in `dashboard/src/tailwind.css`. Delete any `:root` or `.dark` block and any font import that shadcn adds. Style with mapped classes such as `bg-primary`. **Guard.** `scripts/check-design.sh` fails on a `:root` block or a raw shadcn variable.
 
+### `shadcn add` stops on a question when a component exists
+
+- **Symptom.** `npx shadcn@latest add dialog alert-dialog` hangs at "The file button.tsx already exists. Would you like to overwrite?", and a script or agent that runs it waits until it times out.
+- **Cause.** Some components pull in `button`, which this repository already fitted to `DESIGNS.md`. The CLI asks before it overwrites, even with `--yes`.
+- **Do.** Answer no from the shell: `yes n | npx shadcn@latest add <name>`. Then check `git diff src/components/ui/` and `src/tailwind.css`. The sonner toaster also installs `next-themes`; point it at `src/hooks/useTheme.ts` and uninstall `next-themes`, as `src/components/ui/sonner.tsx` does.
+
 ### A search param that `validateSearch` leaves out still reaches the route
 
 - **Symptom.** After sign-in from `/sign-in?redirect=https://evil.example/`, the browser leaves the dashboard, although the sign-in route's `validateSearch` rejects that value.
@@ -85,6 +91,12 @@ Each entry is a mistake that this project already made. It gives the symptom you
 - **Symptom.** `scripts/e2e-dashboard.sh` fails now and then: the right password shows "The email or password is incorrect.", and the backend log shows two 401s in the same second.
 - **Cause.** The test slept a fixed time after the wrong-password submit. When the server answered late, the form was still disabled. Disabled inputs drop out of `FormData`, so the next submit sent `null` for the email and password.
 - **Do.** Wait for what the user would see, such as the error box or the sidebar, with the `until` helper in `scripts/e2e/signin.mjs`. Do not add fixed sleeps after a server call.
+
+### A browser test that picks its targets by position breaks when the sample plan changes
+
+- **Symptom.** `scripts/e2e/routes.mjs` fails "the moved stop sits in its new row as an outline" after a planner change, although dragging works by hand. The change bar says "1 stop no longer fits".
+- **Cause.** The test dropped a stop on the middle of the first route's row. Once the planner packed that route closer to the end of the shift, no place after the drop had room, so the planner left the stop unassigned, as it should.
+- **Do.** Choose drag targets and expected rows from the plan data, such as the route that finishes earliest, not from row order or position. Assert what the dispatcher reads, such as the absence of "no longer fits", so the failure names its cause.
 
 ### Chrome keeps writing to its profile after it exits
 

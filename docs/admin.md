@@ -51,7 +51,7 @@ If the email address already has an account, the command stops with `That email 
 
 1. Open the dashboard. In development it runs at http://localhost:5174.
 2. Enter the master admin's email address and password.
-3. Select **Sign in**. The dashboard opens **Routes** and shows your email address at the bottom of the sidebar. If you opened a link to another screen, such as `/drivers`, it opens that screen instead.
+3. Select **Sign in**. The dashboard opens **Get started**, the setup checklist, until a day has been planned, and **Today** after that. It shows your email address at the bottom of the sidebar. If you opened a link to another screen, such as `/drivers`, it opens that screen instead.
 
 ## 3. Add accounts for your team
 
