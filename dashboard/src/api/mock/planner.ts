@@ -2,7 +2,6 @@ import type {
   Depot,
   Driver,
   DriverId,
-  LatLng,
   Order,
   OrderId,
   Pin,
@@ -17,6 +16,7 @@ import type {
   UnassignedReason,
   Vehicle,
 } from '../types.ts'
+import { orderLocation } from '../../lib/route.ts'
 import { bearing, driveMinutes, roadKm } from './geo.ts'
 
 // A deterministic stand-in for the backend solver. It sweeps orders around the depot into one sector per
@@ -43,9 +43,6 @@ export type PlanResult = { routes: RouteDraft[]; unassigned: Unplaced[] }
 
 type Ctx = { depot: Depot; orders: Map<OrderId, Order>; settings: SolveSettings }
 type Simulated = { route: RouteDraft; dropped: Unplaced[] }
-
-/** Where an order is on the map, or null when its address was not found. */
-export const orderLocation = (order: Order): LatLng | null => (order.geocode.status === 'not_found' ? null : order.geocode.location)
 
 export const routeOrderIds = (route: Pick<Route, 'trips'>): OrderId[][] => route.trips.map((t) => t.stops.map((s) => s.orderId))
 
@@ -177,11 +174,14 @@ function sequenceTrip(ctx: Ctx, entry: FleetEntry, ids: OrderId[], departAt: num
   return ordered
 }
 
-/** Splits a driver's orders into trips: earlier windows first, then around the depot, cut at vehicle capacity. */
+/**
+ * Splits a driver's orders into trips: earlier windows first, then nearest to the depot, cut at vehicle
+ * capacity. Within one sector that makes each trip a band at a similar distance, not a spike to the edge.
+ */
 function tripsFor(ctx: Ctx, entry: FleetEntry, ids: OrderId[]): OrderId[][] {
-  const angle = (id: OrderId) => bearing(ctx.depot.location, orderLocation(ctx.orders.get(id)!)!)
   const windowHour = (id: OrderId) => Math.floor((ctx.orders.get(id)!.window?.end ?? 24 * 60) / 120)
-  const sorted = [...ids].sort((a, b) => windowHour(a) - windowHour(b) || angle(a) - angle(b))
+  const distance = (id: OrderId) => roadKm(ctx.depot.location, orderLocation(ctx.orders.get(id)!)!)
+  const sorted = [...ids].sort((a, b) => windowHour(a) - windowHour(b) || distance(a) - distance(b))
   if (!ctx.settings.allowReloads) return [sorted]
   const trips: OrderId[][] = []
   let current: OrderId[] = []
@@ -248,7 +248,8 @@ type InsertOptions = { forced: boolean }
 
 /**
  * The cheapest place to add an order to a route: any position in any trip, or a new trip when reloads are on.
- * Returns null when every place drops a stop, unless `forced`, which then accepts late stops.
+ * Returns null when every place drops a stop, unless `forced`, which then accepts late stops. It never
+ * trades a stop already on the route for the new one.
  */
 function bestInsertion(ctx: Ctx, entry: FleetEntry, groups: OrderId[][], orderId: OrderId, { forced }: InsertOptions): Simulated | null {
   const base = simulate(ctx, entry, groups, false)
@@ -273,7 +274,7 @@ function bestInsertion(ctx: Ctx, entry: FleetEntry, groups: OrderId[][], orderId
   const soft: Ctx = { ...ctx, settings: { ...ctx.settings, strictWindows: false } }
   for (const option of options) {
     const s = simulate(soft, entry, option, false)
-    if (s.dropped.some((d) => d.orderId === orderId)) continue
+    if (s.dropped.length > base.dropped.length || s.dropped.some((d) => d.orderId === orderId)) continue
     if (!best || cost(s) < cost(best)) best = s
   }
   return best
@@ -368,6 +369,11 @@ export function applyOps(problem: PlanProblem, current: PlanResult, ops: PlanCha
     const r = routes.get(driverId)
     return r ? routeOrderIds(r) : []
   }
+  // A route that drops a stop when it is timed again lists the stop as unassigned, so no order goes missing.
+  const place = (driverId: DriverId, sim: Simulated) => {
+    routes.set(driverId, sim.route)
+    unassigned.push(...sim.dropped)
+  }
   const take = (orderId: OrderId) => {
     unassigned = unassigned.filter((u) => u.orderId !== orderId)
     for (const [driverId, r] of routes) {
@@ -375,13 +381,13 @@ export function applyOps(problem: PlanProblem, current: PlanResult, ops: PlanCha
       if (!groups.flat().includes(orderId)) continue
       const entry = entryOf(driverId)
       const kept = groups.map((g) => g.filter((id) => id !== orderId)).filter((g) => g.length)
-      if (entry) routes.set(driverId, simulate(ctx, entry, kept, false).route)
+      if (entry) place(driverId, simulate(ctx, entry, kept, false))
     }
   }
   const put = (orderId: OrderId, driverId: DriverId) => {
     const entry = entryOf(driverId)
-    const s = entry && bestInsertion(ctx, entry, groupsOf(driverId), orderId, { forced: true })
-    if (s) routes.set(driverId, s.route)
+    const sim = entry && bestInsertion(ctx, entry, groupsOf(driverId), orderId, { forced: true })
+    if (sim) place(driverId, sim)
     else unassigned.push({ orderId, reason: entry ? 'past_shift' : 'no_driver' })
   }
   for (const op of ops) {

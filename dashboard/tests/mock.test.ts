@@ -109,7 +109,8 @@ test('a proposed move previews, applies, and undoes', async () => {
   const diff = [{ kind: 'move_stop' as const, orderId, fromDriverId: from.driverId, toDriverId: to.driverId }]
   const preview = await previewChange(view.plan.id, diff)
   assert.ok(allStops({ routes: preview.routes.filter((r) => r.driverId === to.driverId) }).includes(orderId))
-  assert.ok(preview.impact.drivers.some((d) => d.driverId === to.driverId && d.minutesDelta > 0))
+  assert.ok(preview.impact.drivers.some((d) => d.driverId === to.driverId && (d.minutesDelta > 0 || d.kmDelta > 0)), 'the receiving driver drives more')
+  assert.equal(allStops(preview).length + preview.unassigned.length, 180, 'a move never loses an order')
   assert.ok(allStops({ routes: (await getCurrentPlan())!.routes.filter((r) => r.driverId === from.driverId) }).includes(orderId), 'a preview saves nothing')
   const change = await proposeChange(view.plan.id, { authorKind: 'agent', summary: 'Move a stop', diff })
   const applied = await applyChange(change.id)
