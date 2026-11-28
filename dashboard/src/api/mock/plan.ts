@@ -41,6 +41,9 @@ export type SendOptions = {
 /** Who got a route, and the drivers who could not: no app and no phone number. */
 export type SendResult = { dispatches: Dispatch[]; unreachable: Plan['driverIds'] }
 
+/** How many applied changes of a plan can be undone in a row. */
+const UNDO_DEPTH = 20
+
 const editable = (plan: Plan) => {
   if (plan.status === 'live') throw new Error('The day is running. Change routes from the live view.')
 }
@@ -142,6 +145,9 @@ export const applyChange = (changeId: PlanChangeId) =>
     change.status = 'applied'
     storeRoutes(db, plan.id, routesFromResult(db, plan.id, after))
     Object.assign(plan, rules, { version: plan.version + 1 })
+    // Each snapshot holds every route, so only the latest few stay undoable and storage does not fill up.
+    const applied = db.plan_change.filter((c) => c.planId === plan.id && c.status === 'applied')
+    for (const old of applied.slice(0, -UNDO_DEPTH)) old.before = null
     return viewOf(db, plan.id)
   })
 
@@ -162,8 +168,9 @@ export const undoChange = (changeId: PlanChangeId) =>
     const latest = db.plan_change
       .filter((c) => c.planId === plan.id && c.status === 'applied')
       .reduce<PlanChange | null>((last, c) => (!last || c.createdAt >= last.createdAt ? c : last), null)
-    if (change.status !== 'applied' || !change.before) throw new Error('Only an applied change can be undone.')
+    if (change.status !== 'applied') throw new Error('Only an applied change can be undone.')
     if (latest?.id !== change.id) throw new Error('Undo the later changes first.')
+    if (!change.before) throw new Error('This change is too old to undo.')
     storeRoutes(db, plan.id, change.before)
     Object.assign(plan, change.before.rules, { version: plan.version + 1 })
     change.status = 'undone'

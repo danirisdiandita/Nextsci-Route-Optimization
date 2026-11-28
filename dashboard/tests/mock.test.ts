@@ -175,3 +175,15 @@ test('defaults apply to several drivers at once, or to none when one is invalid'
   await assert.rejects(updateDrivers(ids, { shift: { start: 900, end: 420 } }), { message: 'Shift must end after it starts.' })
   assert.ok((await listDrivers()).every((d) => d.shift.start === 420), 'nothing changed')
 })
+
+// Last, because after a refused write the mock keeps the database in memory for the rest of the process.
+test('when the browser refuses a write, later reads still see it', async () => {
+  await resetDemo()
+  const storage = globalThis.localStorage as { setItem: (k: string, v: string) => void }
+  storage.setItem = () => {
+    throw new Error('QuotaExceededError')
+  }
+  const depot = (await listDepots())[0]
+  await updateDepot(depot.id, { name: 'Dapur Layur Dua' })
+  assert.equal((await listDepots())[0].name, 'Dapur Layur Dua')
+})

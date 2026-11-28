@@ -283,22 +283,25 @@ export function parseDb(text: string | null): Db | null {
   }
 }
 
-// Private windows and blocked storage throw on access. The database then lives in memory until reload.
+// Blocked storage throws on access, and full storage throws on write. After a failed write the database
+// lives in memory until reload, so later reads see the latest writes instead of the stale stored copy.
 let memory: string | null = null
 const storage = {
   get(): string | null {
+    if (memory !== null) return memory
     try {
       return localStorage.getItem(STORAGE_KEY)
     } catch {
-      return memory
+      return null
     }
   },
   set(text: string) {
     try {
-      localStorage.setItem(STORAGE_KEY, text)
+      if (memory === null) return localStorage.setItem(STORAGE_KEY, text)
     } catch {
-      memory = text
+      console.warn(`Browser storage refused the mock data under ${STORAGE_KEY}. Changes last until the page reloads.`)
     }
+    memory = text
   },
 }
 
