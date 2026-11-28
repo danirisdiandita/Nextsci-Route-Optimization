@@ -8,7 +8,7 @@ echo "== docs"
 
 echo "== backend"
 cd "$root/backend"
-[ -d .venv ] || python3 -m venv .venv
+"$root/scripts/backend-venv.sh"
 .venv/bin/pip install -q -r requirements-dev.txt
 .venv/bin/python manage.py check
 .venv/bin/python manage.py makemigrations --check --dry-run

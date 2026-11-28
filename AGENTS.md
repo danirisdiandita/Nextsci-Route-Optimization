@@ -8,7 +8,7 @@ Nextsci Route Optimisation is an open-source route planning and optimisation pla
 
 ## Repository layout
 
-- `backend/` — Django 6 API on PostgreSQL with PostGIS, through GeoDjango (`config/` is the project package; `config/tests/` checks that PostGIS and pgvector answer queries). Python venv in `backend/.venv`, deps pinned in `requirements.txt`. Settings come from environment variables, loaded from the repo-root `.env` for local runs.
+- `backend/` — Django 6 API on PostgreSQL with PostGIS, through GeoDjango (`config/` is the project package; `config/tests/` checks that PostGIS and pgvector answer queries). Python 3.14, pinned in `backend/.python-version`, in a venv at `backend/.venv` that `scripts/backend-venv.sh` creates with uv; deps pinned in `requirements.txt`. Settings come from environment variables, loaded from the repo-root `.env` for local runs.
   - `config/settings/` — `base.py` shared, `dev.py` (default, DEBUG on), `prod.py` (DEBUG off, requires `DJANGO_SECRET_KEY`, HTTPS-only). Select with `DJANGO_SETTINGS_MODULE`.
   - `apps/<app>/` — one Django app per domain in a fixed layout (`models.py`, `services.py`, `selectors.py`, `api/`, `tests/`). Create apps with `scripts/new-backend-app.sh <name>`. Layout, import rules, and the planned domain map: `.agents/backend.md`.
   - `.importlinter` — import contracts that `lint-imports` checks; `requirements-dev.txt` adds dev tools on top of `requirements.txt`.
@@ -36,6 +36,7 @@ Nextsci Route Optimisation is an open-source route planning and optimisation pla
 - `.env.example` — every config variable; copy to `.env` (gitignored)
 - `.moon/workspace.yml`, `backend/moon.yml`, `frontend/moon.yml`, `dashboard/moon.yml` — moon task runner config
 - `.prototools` — pins node for proto, which moon puts first on task PATH
+- `scripts/backend-venv.sh` — creates `backend/.venv` with uv on the Python version in `backend/.python-version`, downloading that Python if needed, and recreates a venv on any other version. The moon `backend:install` task and `scripts/check.sh` call it
 - `scripts/check.sh` — installs, typechecks, and builds all four apps; run before declaring work done
 - `README.md` — project overview
 - `docs/admin.md` — how-to for creating the master admin (Django superuser), signing in to the dashboard, and adding accounts. Update it when account or sign-in behavior changes.
@@ -65,7 +66,7 @@ Apply migrations: `moon run backend:migrate`. Create the master admin: `moon run
 Whole stack in Docker: `cp .env.example .env && docker compose up --build`. Ports: backend 8000, dashboard 5174, Metro 8081, Postgres `POSTGRES_HOST_PORT` (default 5432). Set `HOST_LAN_IP` in `.env` so Expo Go on a phone can reach Metro. Services and containers are named `router-db`, `router-backend`, `router-dashboard`, and `router-mobile`. Database only: `docker compose up -d router-db`.
 
 Backend (`cd backend`):
-- Setup: install GDAL (`sudo apt install gdal-bin`, or `brew install gdal`), then `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`, then fill the `POSTGRES_*` values in the repo-root `.env` for a running Postgres with PostGIS and pgvector
+- Setup: install GDAL (`sudo apt install gdal-bin`, or `brew install gdal`), install [uv](https://docs.astral.sh/uv/) (`curl -LsSf https://astral.sh/uv/install.sh | sh`), then `../scripts/backend-venv.sh && .venv/bin/pip install -r requirements.txt`, then fill the `POSTGRES_*` values in the repo-root `.env` for a running Postgres with PostGIS and pgvector
 - Migrate: `.venv/bin/python manage.py migrate`
 - Run: `.venv/bin/python manage.py runserver`
 - Check: `.venv/bin/python manage.py check`

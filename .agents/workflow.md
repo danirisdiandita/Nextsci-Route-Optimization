@@ -6,8 +6,9 @@ This guide takes a change from a clean checkout to a merged commit on `dev`.
 
 1. Copy the config file: `cp .env.example .env`. Set the `POSTGRES_*` values for a running PostgreSQL 17 server with the PostGIS and pgvector extensions. `docker compose up -d router-db` starts one. The user needs the `CREATEDB` permission, because the tests create a throwaway database.
 2. Install the GDAL, GEOS, and PROJ system libraries, which Django's GIS support loads at runtime. On Debian or Ubuntu run `sudo apt install gdal-bin`. On macOS run `brew install gdal`. With GDAL older than 3.9, `manage.py check` prints warning `gis.W001`. The warning does not fail a check, and the backend Docker image ships GDAL 3.10.
-3. Install moon from [moonrepo.dev](https://moonrepo.dev), or set up each app by hand with the commands in `AGENTS.md`.
-4. Create the master admin: `moon run backend:createsuperuser`. It creates `backend/.venv`, applies migrations, then asks for an email and password. [`docs/admin.md`](../docs/admin.md) has the other ways and how to add more accounts.
+3. Install [uv](https://docs.astral.sh/uv/): `curl -LsSf https://astral.sh/uv/install.sh | sh`. The backend runs on the Python version in `backend/.python-version` (3.14), and uv downloads it, so the system `python3` does not matter.
+4. Install moon from [moonrepo.dev](https://moonrepo.dev), or set up each app by hand with the commands in `AGENTS.md`.
+5. Create the master admin: `moon run backend:createsuperuser`. It creates `backend/.venv`, applies migrations, then asks for an email and password. [`docs/admin.md`](../docs/admin.md) has the other ways and how to add more accounts.
 
 ## Run the apps
 
