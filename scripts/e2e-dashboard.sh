@@ -2,8 +2,9 @@
 # End-to-end test of dashboard sign-in against the real Django backend, in Chrome.
 #   scripts/e2e-dashboard.sh [screenshot-dir]
 # Set COLOR_SCHEME=light or COLOR_SCHEME=dark to take the screenshots in that theme.
+# Set E2E_API_PORT, E2E_DASHBOARD_PORT, and E2E_CHROME_PORT to run beside another copy of this script.
 # Creates a throwaway database and user, starts Django and the dashboard on spare ports,
-# runs scripts/e2e/signin.mjs and scripts/e2e/tour.mjs, and removes everything it created, even when a step fails.
+# runs scripts/e2e/signin.mjs, tour.mjs, and setup.mjs, and removes everything it created, even when a step fails.
 # Needs: PostgreSQL reachable with the credentials in .env, backend/.venv, dashboard/node_modules, Chrome.
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -14,7 +15,7 @@ mkdir -p "$out"
 export POSTGRES_DB="nextsci_e2e_$$"
 email="e2e-dispatcher@example.com"
 password="e2e-$$-route-test"
-api_port=8777 dash_port=5199 cdp_port=9333
+api_port="${E2E_API_PORT:-8777}" dash_port="${E2E_DASHBOARD_PORT:-5199}" cdp_port="${E2E_CHROME_PORT:-9333}"
 chrome="${CHROME:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
 profile="$(mktemp -d)"
 pids=()
@@ -23,7 +24,8 @@ cleanup() {
   for pid in "${pids[@]}"; do kill "$pid" 2>/dev/null || true; done
   sleep 1
   PGPASSWORD="${POSTGRES_PASSWORD:-}" dropdb --if-exists -h "${POSTGRES_HOST:-localhost}" -p "${POSTGRES_PORT:-5432}" -U "${POSTGRES_USER:-postgres}" "$POSTGRES_DB" 2>/dev/null || true
-  rm -rf "$profile"
+  # Chrome's helper processes can outlive it for a moment and keep writing to the profile.
+  rm -rf "$profile" 2>/dev/null || true
 }
 trap cleanup EXIT
 
@@ -61,4 +63,6 @@ echo "== sign-in flow"
 node "$root/scripts/e2e/signin.mjs" "$cdp_port" "http://localhost:$dash_port/" "$out" "$email" "$password"
 echo "== tour of every screen on the mock data"
 node "$root/scripts/e2e/tour.mjs" "$cdp_port" "http://localhost:$dash_port/" "$out" "$email" "$password"
+echo "== manual setup: checklist, depot, drivers, vehicles"
+node "$root/scripts/e2e/setup.mjs" "$cdp_port" "http://localhost:$dash_port/" "$out" "$email" "$password"
 echo "screenshots and logs: $out"

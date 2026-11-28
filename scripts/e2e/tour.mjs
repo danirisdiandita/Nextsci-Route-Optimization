@@ -140,6 +140,6 @@ await go('/routes/no-such-route')
 await check('an unknown path still shows not found', async () => (await heading()) === 'Page not found', async () => await heading())
 await js('localStorage.removeItem("nextsci.agentPanel")')
 
-await send('Browser.close').catch(() => {})
+await send('Target.closeTarget', { targetId: target.id }).catch(() => {})
 console.log(failed ? `${failed} tour check(s) failed` : 'all tour checks passed')
 process.exit(failed ? 1 : 0)
