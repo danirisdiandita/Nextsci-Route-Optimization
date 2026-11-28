@@ -102,7 +102,7 @@ for (const theme of ['light', 'dark']) {
 await clickAt(`document.querySelector('header [aria-label="System theme"]')`); await sleep(200)
 check('the header switch returns to the system theme', (await pressedTheme()) === 'System theme' && !(await js('document.documentElement.dataset.theme')))
 
-await go(`${base}routes`); await atUrl('/routes'); t = await text()
+await go(`${base}routes`); await atUrl('/routes'); await until('document.body.innerText.includes("No routes yet")'); t = await text()
 check('Routes without a plan says so', (await heading()) === 'Routes' && t.includes('No routes yet'), t)
 const stopsLink = await js(`(() => { const a = ${navButton('Stops')}; return a && { tag: a.tagName, href: a.getAttribute('href') } })()`)
 check('sidebar items are links, so they open in a new tab', stopsLink?.tag === 'A' && stopsLink.href === '/stops', JSON.stringify(stopsLink))

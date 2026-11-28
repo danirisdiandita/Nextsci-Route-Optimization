@@ -46,7 +46,8 @@ pids+=($!)
 
 echo "== dashboard on :$dash_port"
 cd "$root/dashboard"
-API_PROXY_TARGET="http://localhost:$api_port" npx vite --port "$dash_port" --strictPort >"$out/dashboard.log" 2>&1 &
+# Run the vite binary itself: killing npx would leave vite holding the port after the script exits.
+API_PROXY_TARGET="http://localhost:$api_port" node_modules/.bin/vite --port "$dash_port" --strictPort >"$out/dashboard.log" 2>&1 &
 pids+=($!)
 
 "$chrome" --headless=new --disable-gpu --remote-debugging-port="$cdp_port" --user-data-dir="$profile" about:blank >/dev/null 2>&1 &
