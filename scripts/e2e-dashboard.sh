@@ -4,7 +4,7 @@
 # Set COLOR_SCHEME=light or COLOR_SCHEME=dark to take the screenshots in that theme.
 # Set E2E_API_PORT, E2E_DASHBOARD_PORT, and E2E_CHROME_PORT to run beside another copy of this script.
 # Creates a throwaway database and user, starts Django and the dashboard on spare ports,
-# runs scripts/e2e/signin.mjs, tour.mjs, stops.mjs, setup.mjs, and routes.mjs, and removes everything it created, even when a step fails.
+# runs scripts/e2e/signin.mjs, tour.mjs, stops.mjs, setup.mjs, routes.mjs, and assistant.mjs, and removes everything it created, even when a step fails.
 # Needs: PostgreSQL reachable with the credentials in .env, backend/.venv, dashboard/node_modules, Chrome.
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -80,4 +80,7 @@ node "$root/scripts/e2e/setup.mjs" "$cdp_port" "http://localhost:$dash_port/" "$
 echo "== routes: plan, edit, send, and run the day"
 start_chrome
 node "$root/scripts/e2e/routes.mjs" "$cdp_port" "http://localhost:$dash_port/" "$out" "$email" "$password"
+echo "== the dispatch agent's first day"
+start_chrome
+node "$root/scripts/e2e/assistant.mjs" "$cdp_port" "http://localhost:$dash_port/" "$out" "$email" "$password"
 echo "screenshots and logs: $out"

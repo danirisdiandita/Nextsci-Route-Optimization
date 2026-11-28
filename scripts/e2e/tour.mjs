@@ -75,7 +75,7 @@ await until('document.querySelector("[role=alertdialog]")')
 await shot('reset-confirm')
 await clickText('[role=alertdialog] button', 'Reset demo data')
 await until('location.pathname === "/today"')
-await check('Reset demo data loads the sample and opens Today', async () => (await url()) === '/today' && /180 orders, 10 drivers/.test(await main()), async () => `${await url()} ${await main()}`)
+await check('Reset demo data loads the sample and opens Today', async () => (await url()) === '/today' && /Plan ready · \d+ routes/.test(await main()), async () => `${await url()} ${await main()}`)
 
 const screens = [
   ['/today', 'today'],
