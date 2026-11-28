@@ -14,7 +14,8 @@ mkdir -p "$out"
 export POSTGRES_DB="nextsci_e2e_$$"
 email="e2e-dispatcher@example.com"
 password="e2e-$$-route-test"
-api_port=8777 dash_port=5199 cdp_port=9333
+# Parallel runs on one machine pick their own ports with E2E_API_PORT, E2E_DASH_PORT, and E2E_CDP_PORT.
+api_port=${E2E_API_PORT:-8777} dash_port=${E2E_DASH_PORT:-5199} cdp_port=${E2E_CDP_PORT:-9333}
 chrome="${CHROME:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
 profile="$(mktemp -d)"
 pids=()

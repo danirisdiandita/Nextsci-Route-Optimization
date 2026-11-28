@@ -65,7 +65,7 @@ Pick every row that matches what you changed. The build passing is never enough 
 | `design.css` | Screenshots of both apps | A shared change shows up in both apps |
 | `compose.yaml` or a `Dockerfile` | `docker compose up --build` on a machine with Docker | The stack starts. If you could not run Docker, say so in the pull request |
 
-`scripts/e2e-dashboard.sh` creates a throwaway database and user, uses ports 8777, 5199, and 9333, and removes everything when it exits.
+`scripts/e2e-dashboard.sh` creates a throwaway database and user, uses ports 8777, 5199, and 9333, and removes everything when it exits. To run two at once, give one other ports with `E2E_API_PORT`, `E2E_DASH_PORT`, and `E2E_CDP_PORT`.
 
 ## Report the result
 
