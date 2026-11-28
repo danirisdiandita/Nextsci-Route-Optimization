@@ -27,6 +27,9 @@ export const queryKeys = {
   incidents: (planId: PlanId) => ['workspace', 'incident', planId] as const,
   dayClock: ['workspace', 'day_clock'] as const,
   agentMessages: ['workspace', 'agent_message'] as const,
+  today: ['workspace', 'today'] as const,
+  /** A mutation key, so every view can tell while the agent is answering. */
+  agentTurn: ['agent-turn'] as const,
   addressSearch: (text: string) => ['address-search', text] as const,
   sampleOrdersFile: ['sample-orders-file'] as const,
 }
