@@ -280,17 +280,18 @@ type InsertOptions = { forced: boolean; from?: StopPosition }
  * Returns null when every place drops a stop, unless `forced`, which then accepts late stops. It never
  * trades a stop already on the route for the new one.
  */
-function bestInsertion(ctx: Ctx, entry: FleetEntry, groups: OrderId[][], orderId: OrderId, { forced, from = { trip: 0, index: 0 } }: InsertOptions): Simulated | null {
+function bestInsertion(ctx: Ctx, entry: FleetEntry, groups: OrderId[][], orderId: OrderId, { forced, from }: InsertOptions): Simulated | null {
   const base = simulate(ctx, entry, groups, false)
   const options: OrderId[][][] = []
   groups.forEach((trip, ti) => {
-    for (let pos = ti === from.trip ? from.index : 0; pos <= trip.length && ti >= from.trip; pos++) {
+    if (from && ti < from.trip) return
+    for (let pos = from && ti === from.trip ? from.index : 0; pos <= trip.length; pos++) {
       options.push(groups.map((g, gi) => (gi === ti ? [...g.slice(0, pos), orderId, ...g.slice(pos)] : g)))
     }
   })
   // Trips are usually full, so a new trip between two others is often the only place that keeps a window.
   if (ctx.settings.allowReloads || groups.length === 0) {
-    for (let at = Math.min(from.trip + 1, groups.length); at <= groups.length; at++) options.push([...groups.slice(0, at), [orderId], ...groups.slice(at)])
+    for (let at = from ? Math.min(from.trip + 1, groups.length) : 0; at <= groups.length; at++) options.push([...groups.slice(0, at), [orderId], ...groups.slice(at)])
   }
   const cost = (s: Simulated) => s.route.end - base.route.end + s.route.distanceKm - base.route.distanceKm
   let best: Simulated | null = null
