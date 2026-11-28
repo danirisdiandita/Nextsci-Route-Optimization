@@ -36,6 +36,12 @@ Each entry is a mistake that this project already made. It gives the symptom you
 - **Cause.** shadcn writes a `:root` block with its own `--accent`, `--border`, and `--radius`, which share names with our tokens and have different meanings.
 - **Do.** Keep only the `@theme inline` mapping in `dashboard/src/tailwind.css`. Delete any `:root` or `.dark` block and any font import that shadcn adds. Style with mapped classes such as `bg-primary`. **Guard.** `scripts/check-design.sh` fails on a `:root` block or a raw shadcn variable.
 
+### `shadcn add` stops on a question when a component exists
+
+- **Symptom.** `npx shadcn@latest add dialog alert-dialog` hangs at "The file button.tsx already exists. Would you like to overwrite?", and a script or agent that runs it waits until it times out.
+- **Cause.** Some components pull in `button`, which this repository already fitted to `DESIGNS.md`. The CLI asks before it overwrites, even with `--yes`.
+- **Do.** Answer no from the shell: `yes n | npx shadcn@latest add <name>`. Then check `git diff src/components/ui/` and `src/tailwind.css`. The sonner toaster also installs `next-themes`; point it at `src/hooks/useTheme.ts` and uninstall `next-themes`, as `src/components/ui/sonner.tsx` does.
+
 ### A search param that `validateSearch` leaves out still reaches the route
 
 - **Symptom.** After sign-in from `/sign-in?redirect=https://evil.example/`, the browser leaves the dashboard, although the sign-in route's `validateSearch` rejects that value.

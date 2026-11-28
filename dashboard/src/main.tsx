@@ -6,7 +6,9 @@ import './design.css'
 import './tailwind.css'
 import { createAppRouter } from './app/router.tsx'
 
-const queryClient = new QueryClient()
+// The mock server answers from localStorage, so a failed call fails the same way every time. Retrying only
+// delays the error message. Revisit when calls go over the network.
+const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
 const router = createAppRouter(queryClient)
 
 createRoot(document.getElementById('root')!).render(

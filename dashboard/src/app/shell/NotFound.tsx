@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { SearchX } from 'lucide-react'
-import { EmptyState } from '@/app/shell/EmptyState'
+import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
 
 export function NotFound() {

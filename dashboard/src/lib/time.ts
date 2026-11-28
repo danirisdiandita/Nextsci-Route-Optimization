@@ -36,6 +36,12 @@ export function formatDuration(minutes: number): string {
   return m % 60 === 0 ? `${m / 60}h` : `${Math.floor(m / 60)}h ${pad(m % 60)}m`
 }
 
+/** 9 → "+9 min", -6 → "−6 min", 0 → "±0 min". */
+export function formatMinutesDelta(minutes: number): string {
+  const m = Math.round(minutes)
+  return `${m > 0 ? '+' : m < 0 ? '−' : '±'}${Math.abs(m)} min`
+}
+
 /** The calendar day of a moment, in local time. */
 export function toDay(date: Date): Day {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` as Day

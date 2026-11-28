@@ -26,6 +26,7 @@ cd "$root/dashboard"
 npm ci --no-fund --no-audit
 npm run lint
 npm run build
+npm test
 "$root/scripts/check-design.sh"
 "$root/scripts/check-react.sh"
 

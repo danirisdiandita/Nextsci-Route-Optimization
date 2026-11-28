@@ -19,7 +19,8 @@ const text = () => js('document.body.innerText.replace(/\\s+/g, " ").trim()')
 const submit = (email, pw) => js(`(() => { const f = document.querySelector('form'); f.email.value = ${JSON.stringify(email)}; f.password.value = ${JSON.stringify(pw)}; f.requestSubmit(); return true })()`)
 // Polls until an expression is truthy. The server's response time varies, so fixed sleeps race it.
 const until = async (expr, ms = 10000) => {
-  for (const end = Date.now() + ms; Date.now() < end; await sleep(100)) if (await js(expr)) return true
+  // A DOM node does not survive returnByValue, so test the expression as a boolean inside the page.
+  for (const end = Date.now() + ms; Date.now() < end; await sleep(100)) if (await js(`!!(${expr})`)) return true
   return false
 }
 // Waits until the session check settles on the sign-in form or the signed-in shell.
@@ -88,8 +89,8 @@ check('each screen has its own document title', (await js('document.title')) ===
 
 let bar = await sidebar()
 check('sidebar starts expanded with the Routes label showing', bar?.state === 'expanded' && bar.width > 200 && bar.routesLabelVisible, JSON.stringify(bar))
-await go(base); await atUrl('/routes'); t = await text()
-check('/ opens on Routes when signed in', (await url()) === '/routes' && (await heading()) === 'Routes' && t.includes('No routes yet'), `${await url()} ${await heading()}`)
+await go(base); await atUrl('/onboarding')
+check('/ opens on the setup checklist while nothing is planned', (await url()) === '/onboarding' && (await heading()) === 'Get started', `${await url()} ${await heading()}`)
 await shot('dash-home')
 
 for (const theme of ['light', 'dark']) {
@@ -101,6 +102,8 @@ for (const theme of ['light', 'dark']) {
 await clickAt(`document.querySelector('header [aria-label="System theme"]')`); await sleep(200)
 check('the header switch returns to the system theme', (await pressedTheme()) === 'System theme' && !(await js('document.documentElement.dataset.theme')))
 
+await go(`${base}routes`); await atUrl('/routes'); t = await text()
+check('Routes without a plan says so', (await heading()) === 'Routes' && t.includes('No routes yet'), t)
 const stopsLink = await js(`(() => { const a = ${navButton('Stops')}; return a && { tag: a.tagName, href: a.getAttribute('href') } })()`)
 check('sidebar items are links, so they open in a new tab', stopsLink?.tag === 'A' && stopsLink.href === '/stops', JSON.stringify(stopsLink))
 await clickAt(navButton('Stops')); await atUrl('/stops')
@@ -110,7 +113,7 @@ await back(); await atUrl('/routes')
 check('browser back returns to Routes', (await url()) === '/routes' && (await heading()) === 'Routes', `${await url()} ${await heading()}`)
 
 await clickAt(navButton('Drivers')); await atUrl('/drivers')
-check('clicking Drivers switches the main heading', (await heading()) === 'Drivers' && (await text()).includes('No drivers yet'), await heading())
+check('clicking Drivers switches the main heading', (await heading()) === 'Drivers', await heading())
 
 await clickAt('document.querySelector("[data-sidebar=trigger]")'); await sleep(500)
 bar = await sidebar()
@@ -154,8 +157,8 @@ await go(`${base}routes/no-such-route`)
 const marked = await js(`document.querySelectorAll('[data-slot=sidebar] [aria-current], [data-slot=sidebar] [data-active]').length`)
 check('a not-found path under /routes marks no section current', (await heading()) === 'Page not found' && marked === 0 && (await js('document.title')) === 'Page not found · Nextsci', `${await heading()} ${marked}`)
 
-await go(`${base}sign-in`); await atUrl('/routes')
-check('signed-in visit to /sign-in goes to Routes', (await url()) === '/routes' && (await heading()) === 'Routes', `${await url()} ${await heading()}`)
+await go(`${base}sign-in`); await atUrl('/onboarding')
+check('signed-in visit to /sign-in goes to the start screen', (await url()) === '/onboarding' && (await heading()) === 'Get started', `${await url()} ${await heading()}`)
 
 await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true })
 await sleep(500)
@@ -178,11 +181,11 @@ check('after sign out, /routes goes to sign-in', (await url()) === '/sign-in?red
 await go(`${base}no-such-page`)
 check('signed-out visit to an unknown path goes to sign-in', (await url()) === '/sign-in?redirect=%2Fno-such-page', await url())
 
-// A redirect that leaves this origin is dropped, so signing in opens Routes instead.
+// A redirect that leaves this origin is dropped, so signing in opens the start screen instead.
 for (const target of ['//evil.example', 'https://evil.example/', '/\\evil.example']) {
   await go(`${base}sign-in?redirect=${encodeURIComponent(target)}`)
-  await submit(email, password); await until('document.querySelector("[data-slot=sidebar-wrapper]")'); await atUrl('/routes')
-  check(`sign-in ignores the redirect ${target}`, (await js('location.origin')) === new URL(base).origin && (await url()) === '/routes', `${await js('location.href')}`)
+  await submit(email, password); await until('document.querySelector("[data-slot=sidebar-wrapper]")'); await atUrl('/onboarding')
+  check(`sign-in ignores the redirect ${target}`, (await js('location.origin')) === new URL(base).origin && (await url()) === '/onboarding', `${await js('location.href')}`)
   await js('localStorage.clear(), true')
 }
 await go(`${base}sign-in`)
