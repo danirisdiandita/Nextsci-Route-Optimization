@@ -10,6 +10,12 @@ Each entry is a mistake that this project already made. It gives the symptom you
 - **Cause.** The database was migrated with Django's built-in user model before `AUTH_USER_MODEL` pointed at `accounts.User`. Django cannot swap the user model of a migrated database.
 - **Do.** On a development database with no data you need, drop it, create it again, and migrate. [`docs/admin.md`](../docs/admin.md) has the commands. Never change `AUTH_USER_MODEL` again. Add fields to `accounts.User` instead.
 
+### The backend venv picks up the system Python
+
+- **Symptom.** In a fresh worktree, `moon run backend:install` fails with `No matching distribution found for Django==6.1.3`, or `backend/.venv/bin/python --version` prints whatever `python3` the machine has, such as 3.10 or 3.11.
+- **Cause.** The install steps ran `python3 -m venv .venv`, so the venv got whatever `python3` the machine had. Django 6.1 needs Python 3.12 or later.
+- **Do.** Pin the version in `backend/.python-version` and create the venv with `scripts/backend-venv.sh`, never `python3 -m venv`. **Guard.** The script uses uv to install the pinned Python and recreates a venv on any other version. The moon `install` task and `scripts/check.sh` both call it.
+
 ### `pip freeze` leaks development tools into production
 
 - **Symptom.** `requirements.txt` suddenly lists `import-linter` and `grimp`, and the Docker image grows.

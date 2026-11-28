@@ -46,7 +46,7 @@ flowchart LR
 
 | App | Path | Stack | Dev URL |
 | --- | --- | --- | --- |
-| API server | [`backend/`](backend/) | Django 6.1, Python 3.12, psycopg 3 | http://localhost:8000 |
+| API server | [`backend/`](backend/) | Django 6.1, Python 3.14, psycopg 3 | http://localhost:8000 |
 | Dashboard for dispatchers | [`dashboard/`](dashboard/) | React 19, TypeScript, Vite 8 | http://localhost:5174 |
 | Driver mobile app | [`mobile/`](mobile/) | Expo SDK 58, React Native, Expo Router | Metro on port 8081 |
 | Database | [`compose.yaml`](compose.yaml) | PostgreSQL 17, pgvector, PostGIS | `localhost:5432` |
@@ -90,7 +90,7 @@ You need [Docker](https://docs.docker.com/get-docker/) with Compose. The stack s
 
 ## Develop without Docker
 
-Run each app directly when you want faster reloads or a debugger. You need Python 3.12, Node.js 22, a running PostgreSQL 17 server with the PostGIS and pgvector extensions, and the GDAL library (`sudo apt install gdal-bin` on Debian or Ubuntu, `brew install gdal` on macOS).
+Run each app directly when you want faster reloads or a debugger. You need [uv](https://docs.astral.sh/uv/) (`curl -LsSf https://astral.sh/uv/install.sh | sh`), which installs Python 3.14 for you, Node.js 22, a running PostgreSQL 17 server with the PostGIS and pgvector extensions, and the GDAL library (`sudo apt install gdal-bin` on Debian or Ubuntu, `brew install gdal` on macOS).
 
 With [moon](https://moonrepo.dev) installed, one command installs what each app needs and starts the API server, the dashboard, and the website:
 
@@ -119,8 +119,8 @@ To run one app at a time instead, follow the steps below.
 3. Install the dependencies and run the server.
 
 	```bash
+	scripts/backend-venv.sh
 	cd backend
-	python3 -m venv .venv
 	.venv/bin/pip install -r requirements.txt
 	.venv/bin/python manage.py migrate
 	.venv/bin/python manage.py runserver
