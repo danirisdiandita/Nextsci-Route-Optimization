@@ -44,8 +44,13 @@ export type SendResult = { dispatches: Dispatch[]; unreachable: Plan['driverIds'
 /** How many applied changes of a plan can be undone in a row. */
 const UNDO_DEPTH = 20
 
-const editable = (plan: Plan) => {
-  if (plan.status === 'live') throw new Error('The day is running. Change routes from the live view.')
+/** Ops that only move stops between drivers, which the dispatcher can still do while the day runs. */
+const liveOps = new Set<PlanChangeOp['kind']>(['move_stop', 'assign_stop', 'unassign_stop'])
+
+const editable = (plan: Plan, diff: PlanChangeOp[] = []) => {
+  if (plan.status === 'live' && !(diff.length && diff.every((op) => liveOps.has(op.kind)))) {
+    throw new Error('The day is running. Change routes from the live view.')
+  }
 }
 
 function checkSettings(db: Db, settings: PlanSettings) {
@@ -117,7 +122,7 @@ export const listPlanChanges = (planId: PlanId) => query((db) => db.plan_change.
 export const proposeChange = (planId: PlanId, input: Pick<PlanChange, 'authorKind' | 'summary' | 'diff'>) =>
   mutate((db) => {
     const plan = must(db.plan, planId, 'plan')
-    editable(plan)
+    editable(plan, input.diff)
     const { before, after } = editPlan(db, plan, input.diff)
     const change: PlanChange = {
       id: newId('plan_change'),
@@ -138,7 +143,7 @@ export const applyChange = (changeId: PlanChangeId) =>
     const change = must(db.plan_change, changeId, 'change')
     if (change.status !== 'proposed') throw new Error('This change was already applied or discarded.')
     const plan = must(db.plan, change.planId, 'plan')
-    editable(plan)
+    editable(plan, change.diff)
     const { rules, before, after } = editPlan(db, plan, change.diff)
     change.before = { version: plan.version, rules: rulesOf(plan), ...planRows(db, plan.id) }
     change.impact = impactOf(before, after)
