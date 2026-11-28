@@ -121,3 +121,19 @@ test('the next setup step is the first one not done', () => {
   assert.equal(nextSetupStep({ depot: true, drivers: false, stops: false, plan: false })?.to, '/drivers')
   assert.equal(nextSetupStep({ depot: true, drivers: true, stops: true, plan: true }), null)
 })
+
+test('the defaults bar reads back what it shows, and names each field to fix', async () => {
+  const { draftOfDefaults, parseDefaultsDraft } = await import('../src/lib/driverDefaults.ts')
+  assert.deepEqual(draftOfDefaults(startingDefaults), { shift: '08:00–16:00', break: '30 min, 11:30–13:00', kind: 'motorbike', capacity: '10' })
+  assert.deepEqual(parseDefaultsDraft(draftOfDefaults(startingDefaults)), { defaults: startingDefaults })
+  assert.deepEqual(parseDefaultsDraft({ shift: '8-16', break: 'lunch', kind: 'car', capacity: '0' }), {
+    errors: {
+      shift: 'Write the shift as 08:00–16:00.',
+      break: 'Write the break as 30 min, 11:30–13:00, or leave it empty.',
+      capacity: 'Capacity is a whole number of boxes, 1 or more.',
+    },
+  })
+  assert.deepEqual(parseDefaultsDraft({ shift: '10:00 - 18:00', break: '', kind: 'car', capacity: '40 boxes' }), {
+    defaults: { shift: { start: 600, end: 1080 }, break: null, vehicle: { kind: 'car', capacity: 40 } },
+  })
+})

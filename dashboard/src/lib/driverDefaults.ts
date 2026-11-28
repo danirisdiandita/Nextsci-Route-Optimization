@@ -1,5 +1,5 @@
 import type { Driver, DriverBreak, TimeWindow, Vehicle, VehicleKind } from '../api/types.ts'
-import { formatMinute, parseWindow } from './time.ts'
+import { formatMinute, formatWindow, parseWindow } from './time.ts'
 
 /** What a vehicle is, apart from its name and depot. */
 export type VehicleSpec = { kind: VehicleKind; capacity: number }
@@ -97,4 +97,35 @@ export function parseDriverLines(text: string): { name: string; phone: string | 
     .map((line) => line.split(/\t|,|;/).map((cell) => cell.trim().replace(/^"|"$/g, '')))
     .filter(([name]) => name && !/^(name|driver|nama)$/i.test(name))
     .map(([name, phone]) => ({ name, phone: phone || null }))
+}
+
+/** The defaults as the dispatcher types them in the defaults bar. */
+export type DefaultsDraft = { shift: string; break: string; kind: VehicleKind; capacity: string }
+export type DefaultsErrors = Partial<Record<keyof DefaultsDraft, string>>
+
+export const draftOfDefaults = (d: DriverDefaults): DefaultsDraft => ({
+  shift: formatWindow(d.shift),
+  break: formatBreak(d.break),
+  kind: d.vehicle.kind,
+  capacity: String(d.vehicle.capacity),
+})
+
+/** Reads the defaults bar, or says which fields to fix. */
+export function parseDefaultsDraft(draft: DefaultsDraft): { defaults: DriverDefaults } | { errors: DefaultsErrors } {
+  const shift = parseWindow(draft.shift)
+  const parsedBreak = parseBreak(draft.break)
+  const capacity = parseCapacity(draft.capacity)
+  const errors: DefaultsErrors = {}
+  if (!shift) errors.shift = 'Write the shift as 08:00–16:00.'
+  if (!parsedBreak) errors.break = 'Write the break as 30 min, 11:30–13:00, or leave it empty.'
+  if (capacity === null) errors.capacity = 'Capacity is a whole number of boxes, 1 or more.'
+  if (!shift || !parsedBreak || capacity === null) return { errors }
+  return { defaults: { shift, break: parsedBreak.break, vehicle: { kind: draft.kind, capacity } } }
+}
+
+/** "10", "10 boxes" → 10. Null unless it is a whole number of at least 1. */
+export function parseCapacity(text: string): number | null {
+  const match = /^\s*(\d+)\s*(boxes|box)?\s*$/i.exec(text)
+  const n = match ? Number(match[1]) : NaN
+  return Number.isInteger(n) && n >= 1 ? n : null
 }
