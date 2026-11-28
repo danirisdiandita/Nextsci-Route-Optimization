@@ -17,14 +17,14 @@ email="e2e-dispatcher@example.com"
 password="e2e-$$-route-test"
 api_port="${API_PORT:-8777}" dash_port="${DASH_PORT:-5199}" cdp_port="${CDP_PORT:-9333}"
 chrome="${CHROME:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
-profile="$(mktemp -d)"
+profiles=()
 pids=()
 
 cleanup() {
   for pid in "${pids[@]}"; do kill "$pid" 2>/dev/null || true; done
   sleep 1
   PGPASSWORD="${POSTGRES_PASSWORD:-}" dropdb --if-exists -h "${POSTGRES_HOST:-localhost}" -p "${POSTGRES_PORT:-5432}" -U "${POSTGRES_USER:-postgres}" "$POSTGRES_DB" 2>/dev/null || true
-  rm -rf "$profile"
+  rm -rf "${profiles[@]}"
 }
 trap cleanup EXIT
 
@@ -51,9 +51,12 @@ cd "$root/dashboard"
 API_PROXY_TARGET="http://localhost:$api_port" node_modules/.bin/vite --port "$dash_port" --strictPort >"$out/dashboard.log" 2>&1 &
 pids+=($!)
 
-# Each test script closes the browser when it ends, so the next one starts a fresh one on the same profile.
+# Each test script closes the browser when it ends, so the next one starts a fresh one. A new profile keeps
+# it from handing off to the old browser while that one is still shutting down.
 start_chrome() {
-  "$chrome" --headless=new --disable-gpu --remote-debugging-port="$cdp_port" --user-data-dir="$profile" about:blank >/dev/null 2>&1 &
+  for _ in $(seq 40); do curl -s -o /dev/null "http://localhost:$cdp_port/json/version" || break; sleep 0.25; done
+  profiles+=("$(mktemp -d)")
+  "$chrome" --headless=new --disable-gpu --remote-debugging-port="$cdp_port" --user-data-dir="${profiles[-1]}" about:blank >/dev/null 2>&1 &
   pids+=($!)
   wait_for "http://localhost:$cdp_port/json/version"
 }
