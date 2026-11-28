@@ -301,7 +301,7 @@ const handlers: { [K in IntentKind]: Handler<K> } = {
     return say(
       chat(
         intent.allow
-          ? "Got it. I'll add depot reloads and remember that for every future plan."
+          ? "Got it. I'll add depot reloads when I plan."
           : "OK, one trip per driver. Stops that don't fit stay unassigned, and I'll list them.",
       ),
     )

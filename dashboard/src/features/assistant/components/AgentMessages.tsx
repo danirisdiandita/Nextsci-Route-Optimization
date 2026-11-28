@@ -42,7 +42,7 @@ export function MessageBlockView({ block }: { block: MessageBlock }) {
   }
 }
 
-export function AgentText({ text }: { text: string }) {
+function AgentText({ text }: { text: string }) {
   return (
     <div className="grid gap-2">
       {messageBlocks(text).map((block, i) => (
