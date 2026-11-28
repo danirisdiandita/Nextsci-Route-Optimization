@@ -210,6 +210,7 @@ await tell('what is the meaning of life')
 await check('a question the agent cannot answer gets a next step, not an error', async () => (await panel()).includes("I didn't catch that"), panel)
 
 await js('localStorage.removeItem("nextsci.agentPanel")')
-await send('Browser.close').catch(() => {})
+// Close only this tab: scripts/e2e-dashboard.sh runs more scripts in the same Chrome, and stops it at the end.
+await fetch(`http://127.0.0.1:${port}/json/close/${target.id}`).catch(() => {})
 console.log(failed ? `${failed} assistant check(s) failed` : 'all assistant checks passed')
 process.exit(failed ? 1 : 0)
