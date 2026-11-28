@@ -3,7 +3,7 @@
 #   scripts/e2e-dashboard.sh [screenshot-dir]
 # Set COLOR_SCHEME=light or COLOR_SCHEME=dark to take the screenshots in that theme.
 # Creates a throwaway database and user, starts Django and the dashboard on spare ports,
-# runs scripts/e2e/signin.mjs and scripts/e2e/tour.mjs, and removes everything it created, even when a step fails.
+# runs scripts/e2e/signin.mjs, scripts/e2e/tour.mjs, and scripts/e2e/assistant.mjs, and removes everything it created, even when a step fails.
 # Needs: PostgreSQL reachable with the credentials in .env, backend/.venv, dashboard/node_modules, Chrome.
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -62,4 +62,6 @@ echo "== sign-in flow"
 node "$root/scripts/e2e/signin.mjs" "$cdp_port" "http://localhost:$dash_port/" "$out" "$email" "$password"
 echo "== tour of every screen on the mock data"
 node "$root/scripts/e2e/tour.mjs" "$cdp_port" "http://localhost:$dash_port/" "$out" "$email" "$password"
+echo "== the dispatch agent's first day"
+node "$root/scripts/e2e/assistant.mjs" "$cdp_port" "http://localhost:$dash_port/" "$out" "$email" "$password"
 echo "screenshots and logs: $out"
