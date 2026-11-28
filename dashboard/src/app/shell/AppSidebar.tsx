@@ -1,6 +1,6 @@
+import { Link } from '@tanstack/react-router'
 import { ChevronsUpDown, LogOut } from 'lucide-react'
-import type { User } from '@/api/auth'
-import { sections, type Section } from '@/components/sections'
+import { sections, type Section } from '@/app/shell/sections'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,16 +22,17 @@ import {
   SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { useSignOut } from '@/hooks/useSignOut'
+import type { User } from '@/features/auth/api'
+import { useSignOut } from '@/features/auth/hooks/useSignOut'
 
 // Text beside an icon fades while the sidebar narrows to its icon rail, so it never shows half clipped.
 const fade = 'transition-opacity duration-200 ease-out group-data-[collapsible=icon]:opacity-0'
 
-type Props = { user: User; active: Section; onSelect: (section: Section) => void }
+type Props = { user: User; active: Section | undefined }
 
 // Every icon, the logo, and the avatar center on one vertical axis, and every label starts at the same x,
 // so nothing moves sideways when the sidebar collapses.
-export function AppSidebar({ user, active, onSelect }: Props) {
+export function AppSidebar({ user, active }: Props) {
   const { setOpenMobile } = useSidebar()
   return (
     <Sidebar collapsible="icon">
@@ -44,28 +45,24 @@ export function AppSidebar({ user, active, onSelect }: Props) {
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu className="gap-1">
-            {sections.map((section) => {
-              const isActive = section.id === active.id
-              return (
-                <SidebarMenuItem key={section.id}>
-                  <SidebarMenuButton
-                    isActive={isActive}
-                    aria-current={isActive ? 'page' : undefined}
-                    tooltip={section.label}
-                    onClick={() => {
-                      onSelect(section)
-                      setOpenMobile(false)
-                    }}
-                  >
-                    <section.icon
-                      aria-hidden="true"
-                      className="text-muted-foreground group-hover/menu-button:text-foreground group-data-active/menu-button:text-foreground"
-                    />
-                    <span className={fade}>{section.label}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )
-            })}
+            {sections.map((section) => (
+              <SidebarMenuItem key={section.path}>
+                <SidebarMenuButton
+                  isActive={section === active}
+                  tooltip={section.label}
+                  // The link sets aria-current itself. Exact matching keeps it on the same item as isActive,
+                  // so a not-found path under /routes marks nothing current.
+                  render={<Link to={section.path} activeOptions={{ exact: true, includeSearch: false }} />}
+                  onClick={() => setOpenMobile(false)}
+                >
+                  <section.icon
+                    aria-hidden="true"
+                    className="text-muted-foreground group-hover/menu-button:text-foreground group-data-active/menu-button:text-foreground"
+                  />
+                  <span className={fade}>{section.label}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>

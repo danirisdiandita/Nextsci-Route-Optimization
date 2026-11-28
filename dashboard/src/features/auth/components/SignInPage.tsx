@@ -1,18 +1,12 @@
 import type { FormEvent } from 'react'
-import { AppShell } from '@/components/AppShell'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { SignInBrand } from '@/components/SignInBrand'
 import { ThemeToggle } from '@/components/ThemeToggle'
-import { useSession } from '@/hooks/useSession'
-import { useSignIn } from '@/hooks/useSignIn'
+import { SignInBrand } from '@/features/auth/components/SignInBrand'
+import { useSignIn } from '@/features/auth/hooks/useSignIn'
 
-function Logo({ size = 28 }: { size?: number }) {
-  return <img src="/favicon.svg" width={size} height={size} alt="" />
-}
-
-function SignIn() {
+export function SignInPage() {
   const signIn = useSignIn()
 
   function submit(e: FormEvent<HTMLFormElement>) {
@@ -25,6 +19,7 @@ function SignIn() {
 
   return (
     <main className="relative grid min-h-screen lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+      <title>Sign in · Nextsci</title>
       <ThemeToggle className="absolute top-4 right-4 z-10" />
       <section className="relative grid place-items-center overflow-hidden px-4 py-16 sm:px-12">
         <div
@@ -32,7 +27,7 @@ function SignIn() {
           className="pointer-events-none absolute inset-x-0 -top-[40%] h-[900px] bg-[radial-gradient(ellipse_40%_35%_at_50%_40%,var(--accent-soft),transparent_70%)] lg:hidden"
         />
         <div className="relative flex w-full max-w-[360px] flex-col items-center text-center lg:items-start lg:text-left">
-          <Logo size={40} />
+          <img src="/favicon.svg" width={40} height={40} alt="" />
           <h1 className="mt-6 text-2xl font-semibold tracking-[-0.02em]">Sign in to Nextsci</h1>
           <p className="mt-2 text-sm text-muted-foreground">Use the account your administrator created for you.</p>
           <form className="mt-8 flex w-full flex-col gap-4 text-left" onSubmit={submit}>
@@ -61,10 +56,4 @@ function SignIn() {
       <SignInBrand />
     </main>
   )
-}
-
-export default function App() {
-  const session = useSession()
-  if (session.isPending) return <main className="min-h-screen" aria-busy="true" />
-  return session.data ? <AppShell user={session.data.user} /> : <SignIn />
 }

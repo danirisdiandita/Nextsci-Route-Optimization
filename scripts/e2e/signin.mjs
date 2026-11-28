@@ -48,6 +48,10 @@ const sidebar = () => js(`(() => {
   return s && { state: s.dataset.state, width: Math.round(box.width), routesLabelVisible: !!label?.checkVisibility({ opacityProperty: true }) }
 })()`)
 const heading = () => js('document.querySelector("main h1")?.textContent')
+// The path and query string the address bar shows, such as /sign-in?redirect=%2Fdrivers.
+const url = () => js('location.pathname + location.search')
+const atUrl = (path) => until(`location.pathname + location.search === ${JSON.stringify(path)}`)
+const back = async () => { await js('history.back(), true') }
 const RAISED = { light: 'rgb(245, 246, 247)', dark: 'rgb(14, 15, 16)' }
 const sidebarBg = () => js('getComputedStyle(document.querySelector("[data-slot=sidebar-inner]")).backgroundColor')
 const pressedTheme = () => js(`document.querySelector('[aria-label$=" theme"][aria-pressed="true"]')?.getAttribute('aria-label')`)
@@ -63,7 +67,12 @@ await send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 800, dev
 await go(base)
 await js(`localStorage.clear(); document.cookie = 'sidebar_state=; path=/; max-age=0'`); await go(base)
 check('opens on sign-in, no landing page', (await text()).startsWith('Sign in to Nextsci'), await text())
+check('the sign-in page has its own document title', (await js('document.title')) === 'Sign in · Nextsci', await js('document.title'))
 await shot('dash-signin')
+
+await go(`${base}drivers`)
+check('signed-out visit to /drivers goes to sign-in and keeps the path', (await url()) === '/sign-in?redirect=%2Fdrivers' && (await text()).startsWith('Sign in to Nextsci'), await url())
+await shot('dash-signin-redirect')
 
 await submit(email, 'wrong-password'); await until('document.querySelector("[role=alert]")')
 const err = await js('document.querySelector("[role=alert]")?.textContent')
@@ -73,10 +82,14 @@ await shot('dash-error')
 await submit(email, password); await until('document.querySelector("[data-slot=sidebar-wrapper]")')
 let t = await text()
 check('right password signs in and shows email', t.includes(email), t)
+await atUrl('/drivers')
+check('signing in returns to the page that asked for it', (await url()) === '/drivers' && (await heading()) === 'Drivers', `${await url()} ${await heading()}`)
+check('each screen has its own document title', (await js('document.title')) === 'Drivers · Nextsci', await js('document.title'))
 
 let bar = await sidebar()
 check('sidebar starts expanded with the Routes label showing', bar?.state === 'expanded' && bar.width > 200 && bar.routesLabelVisible, JSON.stringify(bar))
-check('main area opens on Routes', (await heading()) === 'Routes' && t.includes('No routes yet'), await heading())
+await go(base); await atUrl('/routes'); t = await text()
+check('/ opens on Routes when signed in', (await url()) === '/routes' && (await heading()) === 'Routes' && t.includes('No routes yet'), `${await url()} ${await heading()}`)
 await shot('dash-home')
 
 for (const theme of ['light', 'dark']) {
@@ -88,20 +101,30 @@ for (const theme of ['light', 'dark']) {
 await clickAt(`document.querySelector('header [aria-label="System theme"]')`); await sleep(200)
 check('the header switch returns to the system theme', (await pressedTheme()) === 'System theme' && !(await js('document.documentElement.dataset.theme')))
 
-await clickAt(navButton('Drivers')); await sleep(300)
+const stopsLink = await js(`(() => { const a = ${navButton('Stops')}; return a && { tag: a.tagName, href: a.getAttribute('href') } })()`)
+check('sidebar items are links, so they open in a new tab', stopsLink?.tag === 'A' && stopsLink.href === '/stops', JSON.stringify(stopsLink))
+await clickAt(navButton('Stops')); await atUrl('/stops')
+const current = await js(`document.querySelector('[data-slot=sidebar] [aria-current=page]')?.textContent`)
+check('clicking Stops opens /stops and marks it current', (await url()) === '/stops' && (await heading()) === 'Stops' && current === 'Stops', `${await url()} ${await heading()} ${current}`)
+await back(); await atUrl('/routes')
+check('browser back returns to Routes', (await url()) === '/routes' && (await heading()) === 'Routes', `${await url()} ${await heading()}`)
+
+await clickAt(navButton('Drivers')); await atUrl('/drivers')
 check('clicking Drivers switches the main heading', (await heading()) === 'Drivers' && (await text()).includes('No drivers yet'), await heading())
 
 await clickAt('document.querySelector("[data-sidebar=trigger]")'); await sleep(500)
 bar = await sidebar()
 check('trigger collapses the sidebar to icons', bar?.state === 'collapsed' && bar.width < 64 && !bar.routesLabelVisible, JSON.stringify(bar))
-await shot('dash-home-collapsed')
+await shot('dash-drivers-collapsed')
 await hoverAt(navButton('Stops')); await sleep(400)
 const tip = await js('document.querySelector("[data-slot=tooltip-content]")?.textContent')
 check('hovering a collapsed icon shows its label', tip === 'Stops', tip)
 await shot('dash-tooltip')
 await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 0, y: 0 }); await sleep(300)
 
-await go(base)
+await clickAt(navButton('Depots')); await atUrl('/depots')
+await send('Page.reload'); await sleep(300); await until('document.querySelector("[data-slot=sidebar-wrapper]")')
+check('reload on /depots stays on Depots', (await url()) === '/depots' && (await heading()) === 'Depots', `${await url()} ${await heading()}`)
 bar = await sidebar()
 check('sidebar stays collapsed after reload', bar?.state === 'collapsed' && bar.width < 64, JSON.stringify(bar))
 check('reload keeps the session', (await text()).includes(email))
@@ -118,6 +141,22 @@ t = await text()
 const renewed = await js(`JSON.parse(localStorage.getItem('nextsci.session')).access !== 'expired'`)
 check('expired access token refreshes silently', t.includes(email) && renewed, t)
 
+await go(`${base}no-such-page`)
+const notFound = await js(`(() => {
+  const a = [...document.querySelectorAll('main a')].find((l) => l.textContent === 'Go to Routes')
+  return { title: document.querySelector('main h2')?.textContent, link: a?.getAttribute('href'), shell: !!document.querySelector('[data-slot=sidebar]') }
+})()`)
+check('an unknown path shows the not-found page in the shell', notFound.title === 'Page not found' && notFound.shell && (await heading()) === 'Page not found', JSON.stringify(notFound))
+await shot('dash-not-found')
+await clickAt(`[...document.querySelectorAll('main a')].find((l) => l.textContent === 'Go to Routes')`); await atUrl('/routes')
+check('the not-found page links back to Routes', (await url()) === '/routes' && (await heading()) === 'Routes', `${await url()} ${await heading()}`)
+await go(`${base}routes/no-such-route`)
+const marked = await js(`document.querySelectorAll('[data-slot=sidebar] [aria-current], [data-slot=sidebar] [data-active]').length`)
+check('a not-found path under /routes marks no section current', (await heading()) === 'Page not found' && marked === 0 && (await js('document.title')) === 'Page not found · Nextsci', `${await heading()} ${marked}`)
+
+await go(`${base}sign-in`); await atUrl('/routes')
+check('signed-in visit to /sign-in goes to Routes', (await url()) === '/routes' && (await heading()) === 'Routes', `${await url()} ${await heading()}`)
+
 await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true })
 await sleep(500)
 check('signed in, no horizontal scroll at 390px', !(await js('document.documentElement.scrollWidth > innerWidth')))
@@ -126,14 +165,27 @@ await clickAt('document.querySelector("[data-sidebar=trigger]")'); await sleep(5
 check('trigger opens the navigation sheet on a phone', await js(`!!document.querySelector('[data-mobile=true]')?.textContent.includes('Depots')`))
 await shot('dash-sidebar-phone')
 await clickAt(navButton('Stops', '[data-mobile=true]')); await sleep(500)
-check('choosing a section in the sheet shows it and closes the sheet', (await heading()) === 'Stops' && !(await js('!!document.querySelector("[data-mobile=true]")')), await heading())
+check('choosing a section in the sheet shows it and closes the sheet', (await url()) === '/stops' && (await heading()) === 'Stops' && !(await js('!!document.querySelector("[data-mobile=true]")')), `${await url()} ${await heading()}`)
 
 await send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 800, deviceScaleFactor: 1, mobile: false })
 await sleep(500)
 await clickAt('document.querySelector("[data-slot=sidebar-footer] [data-sidebar=menu-button]")'); await sleep(400)
 await shot('dash-user-menu')
-await clickAt(`[...document.querySelectorAll('[role=menuitem]')].find((i) => i.textContent.trim() === 'Sign out')`); await sleep(500)
-check('sign out from the footer menu returns to sign-in and clears storage', (await text()).startsWith('Sign in to Nextsci') && (await js('localStorage.getItem("nextsci.session")')) === null)
+await clickAt(`[...document.querySelectorAll('[role=menuitem]')].find((i) => i.textContent.trim() === 'Sign out')`); await atUrl('/sign-in')
+check('sign out from the footer menu returns to sign-in and clears storage', (await url()) === '/sign-in' && (await text()).startsWith('Sign in to Nextsci') && (await js('localStorage.getItem("nextsci.session")')) === null, await url())
+await go(`${base}routes`)
+check('after sign out, /routes goes to sign-in', (await url()) === '/sign-in?redirect=%2Froutes', await url())
+await go(`${base}no-such-page`)
+check('signed-out visit to an unknown path goes to sign-in', (await url()) === '/sign-in?redirect=%2Fno-such-page', await url())
+
+// A redirect that leaves this origin is dropped, so signing in opens Routes instead.
+for (const target of ['//evil.example', 'https://evil.example/', '/\\evil.example']) {
+  await go(`${base}sign-in?redirect=${encodeURIComponent(target)}`)
+  await submit(email, password); await until('document.querySelector("[data-slot=sidebar-wrapper]")'); await atUrl('/routes')
+  check(`sign-in ignores the redirect ${target}`, (await js('location.origin')) === new URL(base).origin && (await url()) === '/routes', `${await js('location.href')}`)
+  await js('localStorage.clear(), true')
+}
+await go(`${base}sign-in`)
 
 await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true })
 await sleep(400); await shot('dash-signin-phone')

@@ -8,13 +8,13 @@ Nextsci Route Optimisation is an open-source route planning and optimisation pla
 
 ## Repository layout
 
-- `backend/` — Django 6 API on PostgreSQL (`config/` is the project package). Python venv in `backend/.venv`, deps pinned in `requirements.txt`. Settings come from environment variables, loaded from the repo-root `.env` for local runs.
+- `backend/` — Django 6 API on PostgreSQL with PostGIS, through GeoDjango (`config/` is the project package; `config/tests/` checks that PostGIS and pgvector answer queries). Python venv in `backend/.venv`, deps pinned in `requirements.txt`. Settings come from environment variables, loaded from the repo-root `.env` for local runs.
   - `config/settings/` — `base.py` shared, `dev.py` (default, DEBUG on), `prod.py` (DEBUG off, requires `DJANGO_SECRET_KEY`, HTTPS-only). Select with `DJANGO_SETTINGS_MODULE`.
   - `apps/<app>/` — one Django app per domain in a fixed layout (`models.py`, `services.py`, `selectors.py`, `api/`, `tests/`). Create apps with `scripts/new-backend-app.sh <name>`. Layout, import rules, and the planned domain map: `.agents/backend.md`.
   - `.importlinter` — import contracts that `lint-imports` checks; `requirements-dev.txt` adds dev tools on top of `requirements.txt`.
   - `apps/accounts/` — email-login custom `User` (`AUTH_USER_MODEL = "accounts.User"`) and JWT auth.
   - API is versioned under `/api/v1/`. Auth: `POST auth/token/` (email, password → access, refresh), `POST auth/token/refresh/`, `GET auth/me/`. DRF requires a JWT bearer token by default.
-- `dashboard/` — Vite + React + TypeScript dispatcher app that self-hosters deploy. Opens on sign-in, has no landing page. Calls the API on its own origin (`/api`); in development Vite proxies `/api` to Django (`API_PROXY_TARGET`, default `http://localhost:8000`). Server calls in `src/api/`, custom hooks and TanStack Query in `src/hooks/`, the persisted theme choice in a zustand store in `src/hooks/useTheme.ts`, shadcn/ui components on Tailwind CSS v4 in `src/components/ui/`, and the app's own components in `src/components/` (the signed-in shell is `AppShell.tsx`, its sidebar sections are listed in `sections.ts`). npm.
+- `dashboard/` — Vite + React + TypeScript dispatcher app that self-hosters deploy. Opens on sign-in, has no landing page. Calls the API on its own origin (`/api`); in development Vite proxies `/api` to Django (`API_PROXY_TARGET`, default `http://localhost:8000`). Every screen has a URL (`/sign-in`, `/routes`, `/stops`, `/drivers`, `/depots`). `src/app/` holds the TanStack Router route tree and its sign-in guards (`router.tsx`) and the signed-in shell (`shell/AppShell.tsx`, its sidebar sections listed in `shell/sections.ts`). How to add a screen: the Routing section of `.agents/react.md`. Each domain lives in `src/features/<name>/`: server calls in `api.ts`, its hooks and TanStack Query in `hooks/`, its components in `components/`. `features/auth/` is the first. Shared code: shadcn/ui components on Tailwind CSS v4 in `src/components/ui/`, other shared components in `src/components/`, shared hooks in `src/hooks/` (the persisted theme choice is a zustand store in `src/hooks/useTheme.ts`), and query keys in `src/lib/queryKeys.ts`. npm. The Vite dev server answers every path with `index.html`. A production static host must do the same for any path that is not a file, or deep links and reloads return 404.
 - `frontend/` — Vite + React + TypeScript public project website with the landing page in `src/landing/`. Not part of a self-hosted deployment. npm.
   - `src/pages.ts` lists every page (`/`, `/terms/`, `/privacy/`) with its path and title. `npm run build` prerenders each one: `src/entry-server.tsx` renders `App` for a page, and `scripts/prerender.mjs` writes it into `dist/<path>/index.html`, which `src/main.tsx` then hydrates. To add a page, add it to `pages.ts` and to the `body` table in `src/App.tsx`. Code that runs on import must not touch `window` or `document`, because it also runs in Node at build time. Set `SITE_URL` at build time to add the canonical URL and `sitemap.xml`.
   - `src/landing/legal.ts` holds the terms of service and privacy policy text. Update its `updated` date when you change either, and keep the privacy policy true: it says the website has no analytics or cookies and the software sends no telemetry.
@@ -26,10 +26,13 @@ Nextsci Route Optimisation is an open-source route planning and optimisation pla
 - `dashboard/AGENTS.md`, `frontend/AGENTS.md` — per-app pointers to the rules below, loaded by agents working inside each app
 - `scripts/screenshot.mjs` — full-page screenshot of a running app at an exact width, including widths under 500px
 - `scripts/e2e/theme.mjs` — end-to-end test of the System, Light, and Dark theme switch against a running app (dashboard or website)
-- `scripts/e2e-dashboard.sh` — end-to-end dashboard test in Chrome against a throwaway database: sign-in, the sidebar, the theme switch, and sign-out (`COLOR_SCHEME=light|dark` sets the screenshots' theme); drives `scripts/e2e/signin.mjs`
+- `scripts/e2e-dashboard.sh` — end-to-end dashboard test in Chrome against a throwaway database: sign-in, URL routing (deep links, the sign-in redirect, back, reload, not-found), the sidebar, the theme switch, and sign-out (`COLOR_SCHEME=light|dark` sets the screenshots' theme); drives `scripts/e2e/signin.mjs`
 - `scripts/check-docs.sh` — fails when a doc in `.agents/` is not indexed or a relative markdown link breaks; `scripts/check.sh` runs it
 - `mobile/` — Expo (SDK 58) + Expo Router React Native app for drivers. npm. Read `mobile/AGENTS.md` before touching it.
-- `compose.yaml` — runs Postgres, backend, dashboard, and the Expo dev server together
+- `compose.yaml` — runs Postgres (built from `db/Dockerfile`), backend, dashboard, and the Expo dev server together
+- `pgdata/` — the `router-db` data, bind-mounted by `compose.yaml`. Gitignored, and owned by the container's postgres user, so git and your user cannot read it. Delete it (with `sudo`) to start from an empty database. A `pgdata/` created before PostGIS was added keeps its data but lacks the extension: run `docker compose up -d --build router-db`, then `docker exec router-db psql -U <POSTGRES_USER> -d <POSTGRES_DB> -c 'CREATE EXTENSION IF NOT EXISTS postgis;'`, and the same with `-d template1`.
+- `db/Dockerfile` — the `router-db` image: `pgvector/pgvector:pg17` plus the PostGIS 3 package
+- `db/init/` — SQL that the `router-db` service runs once when `pgdata/` is empty; enables the `vector` and `postgis` extensions in the app database and in `template1`
 - `.env.example` — every config variable; copy to `.env` (gitignored)
 - `.moon/workspace.yml`, `backend/moon.yml`, `frontend/moon.yml`, `dashboard/moon.yml` — moon task runner config
 - `.prototools` — pins node for proto, which moon puts first on task PATH
@@ -49,7 +52,7 @@ Detailed guidance lives in `.agents/`. Start with [.agents/README.md](.agents/RE
 - [DESIGNS.md](DESIGNS.md) — design system: colors, type, components, and landing page structure. Read it before any UI work in `dashboard/`, `frontend/`, or `mobile/`.
 - [.agents/ui.md](.agents/ui.md) — rules that keep the website and the dashboard on one design, and how to verify UI work. Read it before changing `frontend/src/` or `dashboard/src/`.
 - [.agents/backend.md](.agents/backend.md) — Django layout: one app per domain, `api` → `services`/`selectors` → `models`, the domain dependency order, and the planned apps. Read it before changing `backend/`.
-- [.agents/react.md](.agents/react.md) — React code layout for the Vite apps: custom hooks in `src/hooks/`, TanStack Query only inside those hooks, server calls in `src/api/`. Read it before writing React code in `dashboard/` or `frontend/`.
+- [.agents/react.md](.agents/react.md) — React code layout for the Vite apps: one folder per feature in `src/features/`, custom hooks and TanStack Query only in hook folders, server calls only in API modules, and no imports between features. Read it before writing React code in `dashboard/` or `frontend/`.
 
 ## Commands
 
@@ -59,10 +62,10 @@ Run backend (:8000), dashboard (:5174), and website (:5173) together: `moon run 
 
 Apply migrations: `moon run backend:migrate`. Create the master admin: `moon run backend:createsuperuser` (installs and migrates first, then prompts for email and password; add `-- --noinput` with `DJANGO_SUPERUSER_EMAIL` and `DJANGO_SUPERUSER_PASSWORD` set to skip the prompts).
 
-Whole stack in Docker: `cp .env.example .env && docker compose up --build`. Ports: backend 8000, dashboard 5174, Metro 8081, Postgres `POSTGRES_HOST_PORT` (default 5432). Set `HOST_LAN_IP` in `.env` so Expo Go on a phone can reach Metro.
+Whole stack in Docker: `cp .env.example .env && docker compose up --build`. Ports: backend 8000, dashboard 5174, Metro 8081, Postgres `POSTGRES_HOST_PORT` (default 5432). Set `HOST_LAN_IP` in `.env` so Expo Go on a phone can reach Metro. Services and containers are named `router-db`, `router-backend`, `router-dashboard`, and `router-mobile`. Database only: `docker compose up -d router-db`.
 
 Backend (`cd backend`):
-- Setup: `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`, then fill the `POSTGRES_*` values in the repo-root `.env` for a running Postgres
+- Setup: install GDAL (`sudo apt install gdal-bin`, or `brew install gdal`), then `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`, then fill the `POSTGRES_*` values in the repo-root `.env` for a running Postgres with PostGIS and pgvector
 - Migrate: `.venv/bin/python manage.py migrate`
 - Run: `.venv/bin/python manage.py runserver`
 - Check: `.venv/bin/python manage.py check`

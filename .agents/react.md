@@ -6,18 +6,48 @@ These rules apply to `dashboard/` and `frontend/`. Both are Vite + React + TypeS
 
 | Folder | Holds | Imports React? |
 | --- | --- | --- |
-| `src/api/` | Plain async functions that call the server. They parse each response into a domain type and throw an `Error` whose message the user can read. | No |
-| `src/hooks/` | Custom React hooks, one per file, and `queryKeys.ts` | Yes |
-| everything else in `src/` | Components and styles | Yes |
+| `src/app/` | The route tree and its sign-in guards (`router.tsx`), and the signed-in shell (`shell/`). It connects the features, so it may import anything. | Yes |
+| `src/features/<name>/` | One domain, such as `auth` or `routes`: `api.ts` calls the server, `hooks/` holds its hooks, and `components/` holds its screens | Yes, except `api.ts` |
+| `src/components/` | Components that more than one feature uses. shadcn/ui code is in `src/components/ui/`. | Yes |
+| `src/hooks/` | Hooks that more than one feature uses | Yes |
+| `src/lib/` | Plain helpers and `queryKeys.ts` | No |
+| `src/api/` | Server code that every feature shares, such as a request helper. The dashboard has none yet. | No |
 
-1. **Every custom hook lives in `src/hooks/`.** Put each hook in its own file, named after the hook: `useRoutes` goes in `src/hooks/useRoutes.ts`, exported as `export function useRoutes`. A component file never defines a hook, not even a small one. The one exception is `src/components/ui/`, which holds shadcn code that may keep its internal hooks, such as `useFormField`.
-2. **TanStack Query appears only in `src/hooks/`.** `useQuery`, `useMutation`, `useQueryClient`, and every other import from `@tanstack/react-query` belong in a hook. The one exception is `src/main.tsx`, which creates the `QueryClient` and wraps the app in `QueryClientProvider`.
-3. **Every file in `src/hooks/` is a hook, except `queryKeys.ts`.** Do not put helpers, types, or API calls there.
-4. **Only `src/api/` calls `fetch`.** A hook calls an API function. A component calls a hook.
+An API module (`api.ts`, or files in `src/api/`) holds plain async functions. Each parses the response into a domain type and throws an `Error` whose message the user can read.
+
+1. **Every custom hook lives in a hook folder.** Use `src/features/<name>/hooks/` when one feature uses the hook, and `src/hooks/` when several do. Put each hook in its own file, named after the hook: `useRoutes` goes in `src/features/routes/hooks/useRoutes.ts`, exported as `export function useRoutes`. A component file never defines a hook, not even a small one. The one exception is `src/components/ui/`, which holds shadcn code that may keep its internal hooks, such as `useFormField`.
+2. **TanStack Query appears only in hook folders.** `useQuery`, `useMutation`, `useQueryClient`, and every other import from `@tanstack/react-query` belong in a hook. There are two exceptions. `src/main.tsx` creates the `QueryClient` and wraps the app in `QueryClientProvider`. `src/app/router.tsx` reads the session through that client in its route guards, which run before any component renders and so cannot call a hook.
+3. **Every file in a hook folder is a hook.** Do not put helpers, types, or API calls there.
+4. **Only API modules call `fetch`.** That is `src/features/<name>/api.ts` (or an `api/` folder when it grows), and `src/api/`. A hook calls an API function. A component calls a hook.
+5. **A feature never imports another feature.** A file in `src/features/routes/` imports its own files and shared code, never `@/features/drivers/...` or `../../drivers/...`. Move code that two features need to `src/components/`, `src/hooks/`, or `src/lib/`. Put a screen that combines two features in `src/app/`.
+6. **Shared code never imports a feature or the app.** Files in `src/components/`, `src/hooks/`, `src/lib/`, and `src/api/` never import from `src/features/` or `src/app/`.
+
+## Add a feature
+
+1. Create `src/features/<name>/` with `api.ts`, `hooks/`, and `components/`.
+2. Add its query keys to `src/lib/queryKeys.ts`.
+3. Give its screen a route in `src/app/router.tsx`, as [Routing](#routing) describes.
+4. Run `./scripts/check-react.sh`.
+
+## Routing
+
+The dashboard uses [TanStack Router](https://tanstack.com/router) with a route tree written in code. There is no file-based routing and no route generator, so the folders above stay as they are.
+
+- **The route tree.** `src/app/router.tsx` defines every route: `/sign-in`, the screens inside the shell, and `/`, which redirects to `/routes`. A pathless route with the id `signed-in` renders the shell (`src/app/shell/AppShell.tsx`), and each screen renders in the shell's `<Outlet />`. A catch-all `$` route in the shell shows the not-found page.
+- **The guards.** Route guards live in `router.tsx`, in each route's `beforeLoad`, and nowhere else. They read the session query from the `queryClient` in router context. A signed-out visit to a shell route goes to `/sign-in?redirect=<path>`. A signed-in visit to `/sign-in` goes to the path in `redirect`, or to `/routes` when there is none. The sign-in route's `validateSearch` drops any `redirect` that would leave this origin. Components never check the session to decide what to render.
+- **The sidebar.** `src/app/shell/sections.ts` lists the sidebar sections in order. Each entry has a `path`, a label, an icon, and the empty-state text. The sidebar links to each `path`, so an entry without a route fails the typecheck. The active item, the header title, and the document title come from the matched route.
+- **After sign-in or sign-out.** `useSignIn` writes the session into the cache and calls `router.invalidate()`, which reruns the guards. `useSignOut` clears the session and navigates to `/sign-in`.
+
+To add a screen to the shell:
+
+1. Create its feature folder, as [Add a feature](#add-a-feature) describes.
+2. Add a route under `signedInRoute` in `router.tsx` with the screen as its `component`. If the section is already listed as planned, replace its `plannedSection('/<path>')` line.
+3. Add an entry to `sections` in `sections.ts` if the screen belongs in the sidebar.
+4. Link to it with `<Link to="/<path>">` from `@tanstack/react-router`. The link type checks the path against the route tree.
 
 ## Query keys
 
-Define every query key in `src/hooks/queryKeys.ts`, then use it from there. Never write a key array inline in a hook.
+Define every query key in `src/lib/queryKeys.ts`, then use it from there. Never write a key array inline in a hook.
 
 ```ts
 export const queryKeys = {
@@ -35,11 +65,11 @@ export const queryKeys = {
 
 ## Example
 
-`dashboard/` follows these rules. Read these files before you add a hook:
+`dashboard/` follows these rules, and `dashboard/src/features/auth/` is the model feature. Read these files before you add a hook:
 
-- [`dashboard/src/api/auth.ts`](../dashboard/src/api/auth.ts) calls the server and returns domain types.
-- [`dashboard/src/hooks/useSession.ts`](../dashboard/src/hooks/useSession.ts) wraps the session in a query.
-- [`dashboard/src/hooks/useSignIn.ts`](../dashboard/src/hooks/useSignIn.ts) wraps sign-in in a mutation and updates the session in the cache.
-- [`dashboard/src/App.tsx`](../dashboard/src/App.tsx) uses only hooks.
+- [`dashboard/src/features/auth/api.ts`](../dashboard/src/features/auth/api.ts) calls the server and returns domain types.
+- [`dashboard/src/features/auth/hooks/useSignIn.ts`](../dashboard/src/features/auth/hooks/useSignIn.ts) wraps sign-in in a mutation, updates the session in the cache, and reruns the route guards.
+- [`dashboard/src/features/auth/components/SignInPage.tsx`](../dashboard/src/features/auth/components/SignInPage.tsx) uses only hooks.
+- [`dashboard/src/app/router.tsx`](../dashboard/src/app/router.tsx) reads the session query in its route guards.
 
-`frontend/` has no server data and does not install TanStack Query. If it needs server data, add `@tanstack/react-query` and follow the same layout.
+`frontend/` has no features or server data, keeps its pages in `src/landing/`, and does not install TanStack Query. If it needs server data, add `@tanstack/react-query` and follow the same layout.

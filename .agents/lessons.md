@@ -36,6 +36,12 @@ Each entry is a mistake that this project already made. It gives the symptom you
 - **Cause.** shadcn writes a `:root` block with its own `--accent`, `--border`, and `--radius`, which share names with our tokens and have different meanings.
 - **Do.** Keep only the `@theme inline` mapping in `dashboard/src/tailwind.css`. Delete any `:root` or `.dark` block and any font import that shadcn adds. Style with mapped classes such as `bg-primary`. **Guard.** `scripts/check-design.sh` fails on a `:root` block or a raw shadcn variable.
 
+### A search param that `validateSearch` leaves out still reaches the route
+
+- **Symptom.** After sign-in from `/sign-in?redirect=https://evil.example/`, the browser leaves the dashboard, although the sign-in route's `validateSearch` rejects that value.
+- **Cause.** TanStack Router lays each route's validated search over the raw query string. A key that `validateSearch` leaves out keeps its raw value in `search`.
+- **Do.** Return every key from `validateSearch`, and set it to `undefined` when the value is not valid, as the sign-in route in `dashboard/src/app/router.tsx` does. **Guard.** The redirect checks in `scripts/e2e/signin.mjs` sign in with three off-origin redirects and expect `/routes`.
+
 ### Unlayered CSS beats every Tailwind class
 
 - **Symptom.** A Tailwind class such as `mt-6` has no effect on an `h1` or a `p`.
