@@ -21,6 +21,11 @@ export const nullable =
   (v): v is T | null =>
     v === null || guard(v)
 
+export const optional =
+  <T>(guard: Guard<T>): Guard<T | undefined> =>
+  (v): v is T | undefined =>
+    v === undefined || guard(v)
+
 export const arrayOf =
   <T>(guard: Guard<T>): Guard<T[]> =>
   (v): v is T[] =>

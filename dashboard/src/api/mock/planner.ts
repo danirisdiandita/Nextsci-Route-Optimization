@@ -11,6 +11,7 @@ import type {
   Route,
   RouteColor,
   RouteStop,
+  StopPosition,
   TimeWindow,
   Trip,
   UnassignedReason,
@@ -244,24 +245,52 @@ function sweep(ctx: Ctx, fleet: FleetEntry[], ids: OrderId[]): Map<DriverId, Ord
   return shares
 }
 
-type InsertOptions = { forced: boolean }
+/**
+ * Puts an order at the place the dispatcher chose. A trip past the last one starts a new trip. When the order
+ * does not fit there, such as in a full trip, it goes to the cheapest place after it. Like a forced insertion,
+ * it accepts a late stop rather than drop the one the dispatcher placed.
+ */
+function insertAt(ctx: Ctx, entry: FleetEntry, groups: OrderId[][], orderId: OrderId, at: StopPosition): Simulated {
+  const trip = Math.max(0, Math.min(at.trip, groups.length))
+  const index = Math.max(0, at.index)
+  const option =
+    trip === groups.length ? [...groups, [orderId]] : groups.map((g, i) => (i === trip ? [...g.slice(0, index), orderId, ...g.slice(index)] : g))
+  const soft: Ctx = { ...ctx, settings: { ...ctx.settings, strictWindows: false } }
+  const wanted = [...groups.flat(), orderId]
+  const keepsAll = (sim: Simulated | null): sim is Simulated => {
+    const on = new Set(sim ? routeOrderIds(sim.route).flat() : [])
+    return wanted.every((id) => on.has(id))
+  }
+  const exact = simulate(soft, entry, option, false)
+  if (keepsAll(exact)) return exact
+  for (const c of [ctx, soft]) {
+    const best = bestInsertion(c, entry, groups, orderId, { forced: false, from: { trip, index } })
+    if (keepsAll(best)) return best
+  }
+  // Never push another stop off the route for this one: when no place after it works, this order is the one left out.
+  const kept = simulate(soft, entry, groups, false)
+  return { route: kept.route, dropped: [...kept.dropped, { orderId, reason: 'past_shift' }] }
+}
+
+/** `from` keeps the order at or after a place on the route, such as where the dispatcher dropped it. */
+type InsertOptions = { forced: boolean; from?: StopPosition }
 
 /**
  * The cheapest place to add an order to a route: any position in any trip, or a new trip when reloads are on.
  * Returns null when every place drops a stop, unless `forced`, which then accepts late stops. It never
  * trades a stop already on the route for the new one.
  */
-function bestInsertion(ctx: Ctx, entry: FleetEntry, groups: OrderId[][], orderId: OrderId, { forced }: InsertOptions): Simulated | null {
+function bestInsertion(ctx: Ctx, entry: FleetEntry, groups: OrderId[][], orderId: OrderId, { forced, from = { trip: 0, index: 0 } }: InsertOptions): Simulated | null {
   const base = simulate(ctx, entry, groups, false)
   const options: OrderId[][][] = []
   groups.forEach((trip, ti) => {
-    for (let pos = 0; pos <= trip.length; pos++) {
+    for (let pos = ti === from.trip ? from.index : 0; pos <= trip.length && ti >= from.trip; pos++) {
       options.push(groups.map((g, gi) => (gi === ti ? [...g.slice(0, pos), orderId, ...g.slice(pos)] : g)))
     }
   })
   // Trips are usually full, so a new trip between two others is often the only place that keeps a window.
   if (ctx.settings.allowReloads || groups.length === 0) {
-    for (let at = 0; at <= groups.length; at++) options.push([...groups.slice(0, at), [orderId], ...groups.slice(at)])
+    for (let at = Math.min(from.trip + 1, groups.length); at <= groups.length; at++) options.push([...groups.slice(0, at), [orderId], ...groups.slice(at)])
   }
   const cost = (s: Simulated) => s.route.end - base.route.end + s.route.distanceKm - base.route.distanceKm
   let best: Simulated | null = null
@@ -369,9 +398,12 @@ export function applyOps(problem: PlanProblem, current: PlanResult, ops: PlanCha
     const r = routes.get(driverId)
     return r ? routeOrderIds(r) : []
   }
+  // A recorded failure is history, so it stays on the stop when the route is timed again.
+  const failures = new Map(current.routes.flatMap((r) => r.trips.flatMap((t) => t.stops.flatMap((s) => (s.failure ? [[s.orderId, s.failure] as const] : [])))))
   // A route that drops a stop when it is timed again lists the stop as unassigned, so no order goes missing.
   const place = (driverId: DriverId, sim: Simulated) => {
-    routes.set(driverId, sim.route)
+    const trips = sim.route.trips.map((t) => ({ ...t, stops: t.stops.map((s) => ({ ...s, failure: failures.get(s.orderId) ?? null })) }))
+    routes.set(driverId, { ...sim.route, trips })
     unassigned.push(...sim.dropped)
   }
   const take = (orderId: OrderId) => {
@@ -384,15 +416,18 @@ export function applyOps(problem: PlanProblem, current: PlanResult, ops: PlanCha
       if (entry) place(driverId, simulate(ctx, entry, kept, false))
     }
   }
-  const put = (orderId: OrderId, driverId: DriverId) => {
+  const put = (orderId: OrderId, driverId: DriverId, at?: StopPosition) => {
     const entry = entryOf(driverId)
-    const sim = entry && bestInsertion(ctx, entry, groupsOf(driverId), orderId, { forced: true })
+    const sim = entry && (at ? insertAt(ctx, entry, groupsOf(driverId), orderId, at) : bestInsertion(ctx, entry, groupsOf(driverId), orderId, { forced: true }))
     if (sim) place(driverId, sim)
     else unassigned.push({ orderId, reason: entry ? 'past_shift' : 'no_driver' })
   }
   for (const op of ops) {
     switch (op.kind) {
       case 'move_stop':
+        take(op.orderId)
+        put(op.orderId, op.toDriverId, op.at)
+        break
       case 'assign_stop':
         take(op.orderId)
         put(op.orderId, op.toDriverId)

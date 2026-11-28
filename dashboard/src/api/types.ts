@@ -214,9 +214,13 @@ export type UnassignedReason = (typeof unassignedReasons)[number]
 
 export type UnassignedOrder = { planId: PlanId; orderId: OrderId; reason: UnassignedReason }
 
+/** A place on a route: before stop `index` of trip `trip`, counted without the stop being moved. */
+export type StopPosition = { trip: number; index: number }
+
 /** One edit to a plan. A change holds one or more. */
 export type PlanChangeOp =
-  | { kind: 'move_stop'; orderId: OrderId; fromDriverId: DriverId; toDriverId: DriverId }
+  /** Without `at`, the stop goes where it costs the receiving driver least. */
+  | { kind: 'move_stop'; orderId: OrderId; fromDriverId: DriverId; toDriverId: DriverId; at?: StopPosition }
   | { kind: 'assign_stop'; orderId: OrderId; toDriverId: DriverId }
   | { kind: 'unassign_stop'; orderId: OrderId }
   | { kind: 'remove_driver'; driverId: DriverId }

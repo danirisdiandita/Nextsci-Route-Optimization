@@ -4,7 +4,7 @@
 # Set COLOR_SCHEME=light or COLOR_SCHEME=dark to take the screenshots in that theme.
 # Set E2E_API_PORT, E2E_DASHBOARD_PORT, and E2E_CHROME_PORT to run beside another copy of this script.
 # Creates a throwaway database and user, starts Django and the dashboard on spare ports,
-# runs scripts/e2e/signin.mjs, tour.mjs, stops.mjs, and setup.mjs, and removes everything it created, even when a step fails.
+# runs scripts/e2e/signin.mjs, tour.mjs, stops.mjs, setup.mjs, and routes.mjs, and removes everything it created, even when a step fails.
 # Needs: PostgreSQL reachable with the credentials in .env, backend/.venv, dashboard/node_modules, Chrome.
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -17,15 +17,14 @@ email="e2e-dispatcher@example.com"
 password="e2e-$$-route-test"
 api_port="${E2E_API_PORT:-8777}" dash_port="${E2E_DASHBOARD_PORT:-5199}" cdp_port="${E2E_CHROME_PORT:-9333}"
 chrome="${CHROME:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
-profile="$(mktemp -d)"
+profiles=()
 pids=()
 
 cleanup() {
   for pid in "${pids[@]}"; do kill "$pid" 2>/dev/null || true; done
   sleep 1
   PGPASSWORD="${POSTGRES_PASSWORD:-}" dropdb --if-exists -h "${POSTGRES_HOST:-localhost}" -p "${POSTGRES_PORT:-5432}" -U "${POSTGRES_USER:-postgres}" "$POSTGRES_DB" 2>/dev/null || true
-  # Chrome's helper processes can outlive it for a moment and keep writing to the profile.
-  rm -rf "$profile" 2>/dev/null || true
+  rm -rf "${profiles[@]}"
 }
 trap cleanup EXIT
 
@@ -52,19 +51,33 @@ cd "$root/dashboard"
 API_PROXY_TARGET="http://localhost:$api_port" node_modules/.bin/vite --port "$dash_port" --strictPort >"$out/dashboard.log" 2>&1 &
 pids+=($!)
 
-"$chrome" --headless=new --disable-gpu --remote-debugging-port="$cdp_port" --user-data-dir="$profile" about:blank >/dev/null 2>&1 &
-pids+=($!)
+# Each test script gets a fresh browser on a new profile, so no localStorage or session leaks between scripts.
+chrome_pid=""
+start_chrome() {
+  if [ -n "$chrome_pid" ]; then kill "$chrome_pid" 2>/dev/null || true; fi
+  for _ in $(seq 40); do curl -s -o /dev/null "http://localhost:$cdp_port/json/version" || break; sleep 0.25; done
+  profiles+=("$(mktemp -d)")
+  "$chrome" --headless=new --disable-gpu --remote-debugging-port="$cdp_port" --user-data-dir="${profiles[-1]}" about:blank >/dev/null 2>&1 &
+  chrome_pid=$!
+  pids+=("$chrome_pid")
+  wait_for "http://localhost:$cdp_port/json/version"
+}
 
 wait_for "http://localhost:$api_port/admin/login/"
 wait_for "http://localhost:$dash_port/"
-wait_for "http://localhost:$cdp_port/json/version"
+start_chrome
 
 echo "== sign-in flow"
 node "$root/scripts/e2e/signin.mjs" "$cdp_port" "http://localhost:$dash_port/" "$out" "$email" "$password"
 echo "== tour of every screen on the mock data"
 node "$root/scripts/e2e/tour.mjs" "$cdp_port" "http://localhost:$dash_port/" "$out" "$email" "$password"
 echo "== stops: import, address review, and stop CRUD"
+start_chrome
 node "$root/scripts/e2e/stops.mjs" "$cdp_port" "http://localhost:$dash_port/" "$out" "$email" "$password"
 echo "== manual setup: checklist, depot, drivers, vehicles"
+start_chrome
 node "$root/scripts/e2e/setup.mjs" "$cdp_port" "http://localhost:$dash_port/" "$out" "$email" "$password"
+echo "== routes: plan, edit, send, and run the day"
+start_chrome
+node "$root/scripts/e2e/routes.mjs" "$cdp_port" "http://localhost:$dash_port/" "$out" "$email" "$password"
 echo "screenshots and logs: $out"
