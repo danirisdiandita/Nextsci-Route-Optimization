@@ -9,7 +9,7 @@ backend="$(cd "$(dirname "$0")/../backend" && pwd)"
 cd "$backend"
 [[ -e "apps/$name" ]] && { echo "apps/$name already exists; nothing changed" >&2; exit 1; }
 python=".venv/bin/python"
-[[ -x "$python" ]] || { echo "backend/.venv is missing. Run: cd backend && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt" >&2; exit 1; }
+[[ -x "$python" ]] || { echo "backend/.venv is missing. Run: scripts/backend-venv.sh && backend/.venv/bin/pip install -r backend/requirements.txt" >&2; exit 1; }
 
 mkdir "apps/$name"
 "$python" manage.py startapp --template app_template "$name" "apps/$name"
