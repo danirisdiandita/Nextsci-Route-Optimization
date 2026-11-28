@@ -4,8 +4,8 @@
 services:
   router-db:
     container_name: router-db
-    # PostgreSQL 17 with the pgvector extension. db/init enables it on first start.
-    image: pgvector/pgvector:pg17
+    # PostgreSQL 17 with pgvector and PostGIS (db/Dockerfile). db/init enables both on first start.
+    build: ./db
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-nextsci}
       POSTGRES_USER: ${POSTGRES_USER:-nextsci}
