@@ -2,6 +2,7 @@
 # End-to-end test of dashboard sign-in against the real Django backend, in Chrome.
 #   scripts/e2e-dashboard.sh [screenshot-dir]
 # Set COLOR_SCHEME=light or COLOR_SCHEME=dark to take the screenshots in that theme.
+# Set API_PORT, DASH_PORT, or CDP_PORT to run beside another copy of this script.
 # Creates a throwaway database and user, starts Django and the dashboard on spare ports,
 # runs scripts/e2e/signin.mjs and scripts/e2e/tour.mjs, and removes everything it created, even when a step fails.
 # Needs: PostgreSQL reachable with the credentials in .env, backend/.venv, dashboard/node_modules, Chrome.
@@ -14,7 +15,7 @@ mkdir -p "$out"
 export POSTGRES_DB="nextsci_e2e_$$"
 email="e2e-dispatcher@example.com"
 password="e2e-$$-route-test"
-api_port=8777 dash_port=5199 cdp_port=9333
+api_port="${API_PORT:-8777}" dash_port="${DASH_PORT:-5199}" cdp_port="${CDP_PORT:-9333}"
 chrome="${CHROME:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
 profile="$(mktemp -d)"
 pids=()
@@ -61,4 +62,6 @@ echo "== sign-in flow"
 node "$root/scripts/e2e/signin.mjs" "$cdp_port" "http://localhost:$dash_port/" "$out" "$email" "$password"
 echo "== tour of every screen on the mock data"
 node "$root/scripts/e2e/tour.mjs" "$cdp_port" "http://localhost:$dash_port/" "$out" "$email" "$password"
+echo "== stops: import, address review, and stop CRUD"
+node "$root/scripts/e2e/stops.mjs" "$cdp_port" "http://localhost:$dash_port/" "$out" "$email" "$password"
 echo "screenshots and logs: $out"

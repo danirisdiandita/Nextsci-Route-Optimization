@@ -1,4 +1,4 @@
-import { useRef, type KeyboardEvent } from 'react'
+import { useRef, type KeyboardEvent, type MouseEvent } from 'react'
 import { streets } from '@/api/mock/geocode'
 import type { LatLng, RouteColor } from '@/api/types'
 import { useElementSize } from '@/hooks/useElementSize'
@@ -35,6 +35,8 @@ type Props = {
   drivers?: MapDriver[]
   highlightedStopId?: string | null
   onStopClick?: (stopId: string) => void
+  /** Called with the place under the pointer when the dispatcher clicks the map, such as to drop a pin. */
+  onMapClick?: (at: LatLng) => void
   className?: string
 }
 
@@ -44,12 +46,23 @@ const PAD = 28
  * A map drawn in SVG with no tiles: the known streets as faint lines, routes in their colors, stops as dots,
  * and the depot as a square. It zooms to fit what it shows, and sizes everything in screen pixels.
  */
-export function RouteMap({ label, depot, routes = [], stops = [], drivers = [], highlightedStopId, onStopClick, className }: Props) {
+export function RouteMap({ label, depot, routes = [], stops = [], drivers = [], highlightedStopId, onStopClick, onMapClick, className }: Props) {
   const ref = useRef<HTMLDivElement>(null)
   const { width, height } = useElementSize(ref)
   const points = [...(depot ? [depot] : []), ...stops.map((s) => s.location), ...routes.flatMap((r) => r.paths.flat()), ...drivers.map((d) => d.location)]
-  const project = projection(points, width, height)
-  const click = (id: string) => onStopClick && (() => onStopClick(id))
+  const { project, unproject } = projection(points, width, height)
+  const mapClick =
+    onMapClick &&
+    ((e: MouseEvent<SVGSVGElement>) => {
+      const box = e.currentTarget.getBoundingClientRect()
+      onMapClick(unproject(e.clientX - box.left, e.clientY - box.top))
+    })
+  const click = (id: string) =>
+    onStopClick &&
+    ((e: MouseEvent) => {
+      e.stopPropagation()
+      onStopClick(id)
+    })
   const key = (id: string) =>
     onStopClick &&
     ((e: KeyboardEvent) => {
@@ -60,7 +73,7 @@ export function RouteMap({ label, depot, routes = [], stops = [], drivers = [], 
   return (
     <div ref={ref} className={`relative overflow-hidden bg-inset ${className ?? ''}`}>
       {width > 0 && (
-        <svg role="img" aria-label={label} width={width} height={height} className="absolute inset-0 block">
+        <svg role="img" aria-label={label} width={width} height={height} className="absolute inset-0 block" onClick={mapClick}>
           <g style={{ stroke: 'color-mix(in srgb, var(--text) 6%, transparent)' }} strokeWidth={1}>
             {streets.map((s) => {
               const [a, b] = [project(extend(s.from, s.to, -0.6)), project(extend(s.from, s.to, 1.6))]
@@ -132,5 +145,8 @@ function projection(points: LatLng[], width: number, height: number) {
   const scale = Math.min((width - 2 * PAD) / w, (height - 2 * PAD) / h)
   const offsetX = (width - w * scale) / 2
   const offsetY = (height - h * scale) / 2
-  return (p: LatLng) => ({ x: offsetX + (p.lng - minLng) * kx * scale, y: offsetY + (maxLat - p.lat) * scale })
+  return {
+    project: (p: LatLng) => ({ x: offsetX + (p.lng - minLng) * kx * scale, y: offsetY + (maxLat - p.lat) * scale }),
+    unproject: (x: number, y: number): LatLng => ({ lat: maxLat - (y - offsetY) / scale, lng: minLng + (x - offsetX) / (kx * scale) }),
+  }
 }

@@ -140,6 +140,7 @@ await go('/routes/no-such-route')
 await check('an unknown path still shows not found', async () => (await heading()) === 'Page not found', async () => await heading())
 await js('localStorage.removeItem("nextsci.agentPanel")')
 
-await send('Browser.close').catch(() => {})
+// Close only this tab: the next script in e2e-dashboard.sh drives the same Chrome.
+await Promise.race([send('Page.close'), sleep(1000)])
 console.log(failed ? `${failed} tour check(s) failed` : 'all tour checks passed')
 process.exit(failed ? 1 : 0)
