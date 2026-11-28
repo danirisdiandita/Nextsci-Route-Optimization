@@ -36,7 +36,7 @@ export function StopForm({ initial, actions, error, onSubmit }: Props) {
         onSubmit(parsed.input)
       }}
     >
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid items-start gap-5 sm:grid-cols-2">
         <FormField label="Customer name" htmlFor="stop-customer">
           <Input {...field('customer')} required autoComplete="off" />
         </FormField>
@@ -47,7 +47,7 @@ export function StopForm({ initial, actions, error, onSubmit }: Props) {
       <FormField label="Address" htmlFor="stop-addressRaw" hint="Placed on the map when you save.">
         <Input {...field('addressRaw')} required autoComplete="off" />
       </FormField>
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid items-start gap-5 sm:grid-cols-2">
         <FormField label="Load (boxes)" htmlFor="stop-quantity">
           <Input {...field('quantity')} type="number" min={1} step={1} inputMode="numeric" />
         </FormField>

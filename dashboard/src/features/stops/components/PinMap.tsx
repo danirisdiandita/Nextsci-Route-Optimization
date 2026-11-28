@@ -25,9 +25,9 @@ export function PinMap({ stops, depot, selectedId, pinFor, onSelect, onPinned }:
         depot={depot}
         stops={stops}
         highlightedStopId={selectedId}
-        onStopClick={(id) => onSelect(id as OrderId)}
+        onStopClick={pinFor ? undefined : (id) => onSelect(id as OrderId)}
         onMapClick={pinFor ? place : undefined}
-        className={`absolute inset-0 ${pinFor ? 'cursor-crosshair' : ''}`}
+        className={`size-full ${pinFor ? 'cursor-crosshair' : ''}`}
       />
       {pinFor && (
         <p role="status" className="absolute top-3 left-1/2 -translate-x-1/2 rounded-full border bg-popover px-3 py-1 text-xs font-[560] shadow-md">
