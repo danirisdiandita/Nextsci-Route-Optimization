@@ -141,6 +141,6 @@ await check('an unknown path still shows not found', async () => (await heading(
 await js('localStorage.removeItem("nextsci.agentPanel")')
 
 // Close only this tab: the next script in e2e-dashboard.sh drives the same Chrome.
-await Promise.race([send('Page.close'), sleep(1000)])
+await send('Target.closeTarget', { targetId: target.id }).catch(() => {})
 console.log(failed ? `${failed} tour check(s) failed` : 'all tour checks passed')
 process.exit(failed ? 1 : 0)
