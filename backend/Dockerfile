@@ -1,4 +1,4 @@
-FROM python:3.12-slim-trixie
+FROM python:3.14-slim-trixie
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 # GeoDjango loads GDAL, GEOS, and PROJ at runtime. libgdal36 pulls in all three.
 # Its name follows the Debian release, so the base image names trixie.
